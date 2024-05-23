@@ -3,6 +3,8 @@ package ru.bartenev.severstal.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name = "measure_unit")
 @Entity
 @NoArgsConstructor
@@ -21,4 +23,7 @@ public class MeasureUnit {
 
     @Column(name = "title", nullable = false, unique = true)
     private String title;
+
+    @OneToMany(mappedBy = "measureUnit", fetch = FetchType.LAZY)
+    private List<PurchaseObject> purchaseObjects;
 }

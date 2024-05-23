@@ -4,9 +4,9 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
-@Table(name = "purchase_object", uniqueConstraints =
-@UniqueConstraint(columnNames = {"product_type", "title"}))
+@Table(name = "purchase_object")
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -37,11 +37,14 @@ public class PurchaseObject {
     @JoinColumn(name = "measure_unit", referencedColumnName = "id", nullable = false)
     private MeasureUnit measureUnit;
 
-    @Column(name = "count_of", nullable = false)
+    @Column(name = "price_per_unit", nullable = false)
     private BigDecimal price_per_unit;
 
     @ManyToOne
     @JoinColumn(name = "currency_type", referencedColumnName = "id", nullable = false)
     private CurrencyType currencyType;
+
+    @OneToMany(mappedBy = "purchaseObject", fetch = FetchType.LAZY)
+    private List<Complaint> complaints;
 }
 

@@ -3,6 +3,8 @@ package ru.bartenev.severstal.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name = "product", uniqueConstraints =
 @UniqueConstraint(columnNames = {"product_type", "title"}))
 @Entity
@@ -26,4 +28,7 @@ public class Product {
 
     @Column(name = "title", nullable = false)
     private String title;
+
+    @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
+    private List<PurchaseObject> purchaseObjects;
 }

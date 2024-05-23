@@ -3,6 +3,8 @@ package ru.bartenev.severstal.entity;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
+
 @Table(name = "provider")
 @Entity
 @NoArgsConstructor
@@ -21,4 +23,7 @@ public class Provider {
 
     @Column(name = "title", nullable = false)
     private String title;
+
+    @OneToMany(mappedBy = "provider", fetch = FetchType.LAZY)
+    private List<Delivery> deliveries;
 }
