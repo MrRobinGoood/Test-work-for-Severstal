@@ -1,5 +1,6 @@
 package ru.bartenev.severstal.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,7 @@ public class Provider {
     @Column(name = "title", nullable = false)
     private String title;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "provider", fetch = FetchType.LAZY)
     private List<Delivery> deliveries;
 }

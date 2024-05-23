@@ -33,6 +33,6 @@ public class Delivery {
     private LocalDateTime deliveryDateTime;
 
     @ManyToOne
-    @JoinColumn(name = "delivery_status", referencedColumnName = "id", nullable = false)
-    private DeliveryStatus deliveryStatus;
+    @JoinColumn(name = "status", referencedColumnName = "id", nullable = false)
+    private DeliveryStatus status;
 }
