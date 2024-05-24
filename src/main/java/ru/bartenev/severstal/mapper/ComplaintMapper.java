@@ -1,7 +1,6 @@
 package ru.bartenev.severstal.mapper;
 
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
+import org.mapstruct.*;
 import org.springframework.data.domain.Page;
 import ru.bartenev.severstal.dto.*;
 import ru.bartenev.severstal.entity.Complaint;
@@ -26,4 +25,8 @@ public interface ComplaintMapper {
     PaginatedComplaintsDTO complaintsPageToPaginatedComplaintsDTO(Page<Complaint> complaints);
 
     Complaint complaintCreationDTOtoComplaint( PurchaseObject purchaseObject, ComplaintCreationDTO complaintCreationDTO, Reason reason);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    void updateComplaintFromComplaintCreationDTO(ComplaintCreationDTO complaintCreationDTO, @MappingTarget Complaint complaint);
+
 }

@@ -3,7 +3,6 @@ package ru.bartenev.severstal.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.bartenev.severstal.dto.ComplaintDTO;
 import ru.bartenev.severstal.dto.PaginatedDeliveriesDTO;
 import ru.bartenev.severstal.entity.Delivery;
 import ru.bartenev.severstal.enums.DeliverySortingFields;
@@ -37,5 +36,11 @@ public class DeliveryController {
     @GetMapping(value = "/{deliveryId}")
     public Delivery getDeliveryById(@PathVariable(value = "deliveryId") Long id) {
         return deliveryService.getDeliveryById(id);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(value = "/{deliveryId}")
+    public Delivery completeDeliveryById(@PathVariable(value = "deliveryId") Long id) {
+        return deliveryService.completeDeliveryById(id);
     }
 }

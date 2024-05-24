@@ -42,12 +42,6 @@ public class ComplaintController {
         return complaintMapper.complaintsPageToPaginatedComplaintsDTO(complaintService.getComplaintsPageByPurchaseObjectId(purchaseObjectId, pageNum, pageSize));
     }
 
-    @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/complaints/{complaintId}")
-    public ComplaintDTO getComplaintDTOById(@PathVariable(value = "complaintId") Long id) {
-        return complaintMapper.complaintToComplaintDTO(complaintService.getComplaintById(id));
-    }
-
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(value = "/{purchaseObjectId}/complaints")
     public ComplaintDTO addNewComplaintByPurchaseObjectId(@PathVariable(value = "purchaseObjectId") Long purchaseObjectId,
@@ -55,8 +49,28 @@ public class ComplaintController {
         PurchaseObject purchaseObject = purchaseObjectService.getPurchaseObjectById(purchaseObjectId);
         Reason reason = reasonService.getReasonById(complaintCreationDTO.getReasonId());
         return complaintMapper.complaintToComplaintDTO(
-                complaintService.addNewComplaintByPurchaseObjectId(
-                        purchaseObjectId,
-                        complaintMapper.complaintCreationDTOtoComplaint(purchaseObject, complaintCreationDTO, reason)));
+                complaintService.saveComplaint(complaintMapper.complaintCreationDTOtoComplaint(purchaseObject, complaintCreationDTO, reason)));
     }
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping(value = "/complaints/{complaintId}")
+    public ComplaintDTO getComplaintDTOById(@PathVariable(value = "complaintId") Long id) {
+        return complaintMapper.complaintToComplaintDTO(complaintService.getComplaintById(id));
+    }
+
+    @DeleteMapping(value = "/complaints/{complaintId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteComplaintById(@PathVariable(value = "complaintId") Long id) {
+        complaintService.deleteComplaintById(id);
+    }
+
+    @PutMapping(value = "/complaints/{complaintId}")
+    @ResponseStatus(HttpStatus.OK)
+    public ComplaintDTO updateComplaintById(@PathVariable(value = "complaintId") Long id, @Valid @RequestBody ComplaintCreationDTO complaintCreationDTO) {
+        Complaint complaint = complaintService.getComplaintById(id);
+        complaintMapper.updateComplaintFromComplaintCreationDTO(complaintCreationDTO, complaint);
+        complaint.setReason(reasonService.getReasonById(complaintCreationDTO.getReasonId()));
+        return complaintMapper.complaintToComplaintDTO(complaintService.updateComplaint(complaint));
+    }
+
 }

@@ -10,6 +10,8 @@ import ru.bartenev.severstal.entity.PurchaseObject;
 import ru.bartenev.severstal.exception.PurchaseObjectNotFoundException;
 import ru.bartenev.severstal.repository.PurchaseObjectRepository;
 
+import java.util.List;
+
 @Service
 public class PurchaseObjectService {
 
@@ -25,7 +27,11 @@ public class PurchaseObjectService {
         return purchaseObjectRepository.findByDelivery_id(deliveryId, pageable);
     }
 
-    public  PurchaseObject getPurchaseObjectById(Long id){
+    public List<PurchaseObject> getPurchaseObjectsByDeliveryId(Long deliveryId) {
+        return purchaseObjectRepository.findByDelivery_id(deliveryId);
+    }
+
+    public PurchaseObject getPurchaseObjectById(Long id) {
         return purchaseObjectRepository.findById(id).orElseThrow(() -> new PurchaseObjectNotFoundException("Purchase object with id: " + id + " not found."));
     }
 

@@ -1,5 +1,6 @@
 package ru.bartenev.severstal.service;
 
+import lombok.NonNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,14 +18,10 @@ import java.util.List;
 @Service
 public class ComplaintService {
     private ComplaintRepository complaintRepository;
-    private PurchaseObjectService purchaseObjectService;
-    private ReasonService reasonService;
 
     @Autowired
-    public ComplaintService(ComplaintRepository complaintRepository, PurchaseObjectService purchaseObjectService, ReasonService reasonService) {
+    public ComplaintService(ComplaintRepository complaintRepository) {
         this.complaintRepository = complaintRepository;
-        this.purchaseObjectService = purchaseObjectService;
-        this.reasonService = reasonService;
     }
 
     public Page<Complaint> getComplaintsPageByPurchaseObjectId(Long purchaseObjectId, Integer pageNum, Integer pageSize) {
@@ -36,14 +33,14 @@ public class ComplaintService {
         return complaintRepository.findByPurchaseObject_id(purchaseObjectId);
     }
 
-    public void checkSumComplaintsCount(List<Complaint> complaints, BigDecimal newComplaintCount, BigDecimal productCount) {
-        BigDecimal sumAllComplaintsCount = newComplaintCount;
+    public void checkSumComplaintsCount(@NonNull List<Complaint> complaints, BigDecimal complaintCount, BigDecimal productCount) {
+        BigDecimal sumAllComplaintsCount = complaintCount;
 
         if (!complaints.isEmpty()) {
             sumAllComplaintsCount = complaints
                     .stream()
                     .map(Complaint::getComplaintCount)
-                    .reduce(newComplaintCount, BigDecimal::add);
+                    .reduce(complaintCount, BigDecimal::add);
         }
 
         if (sumAllComplaintsCount.compareTo(productCount) > 0) {
@@ -51,18 +48,34 @@ public class ComplaintService {
         }
     }
 
-    public Complaint addNewComplaintByPurchaseObjectId(Long purchaseObjectId, Complaint newComplaint) {
+    public Complaint saveComplaint(@NonNull Complaint complaint) {
 
         checkSumComplaintsCount(
-                getComplaintsByPurchaseObjectId(purchaseObjectId),
-                newComplaint.getComplaintCount(),
-                newComplaint.getPurchaseObject().getProductCount());
+                getComplaintsByPurchaseObjectId(complaint.getPurchaseObject().getId()),
+                complaint.getComplaintCount(),
+                complaint.getPurchaseObject().getProductCount());
 
-        return complaintRepository.save(newComplaint);
+        return complaintRepository.save(complaint);
 
     }
 
     public Complaint getComplaintById(Long id) {
         return complaintRepository.findById(id).orElseThrow(() -> new ComplaintNotFoundException("Complaint with id: " + id + " not found."));
+    }
+
+    public void deleteComplaintById(Long id) {
+        getComplaintById(id);
+        complaintRepository.deleteById(id);
+    }
+
+    public Complaint updateComplaint(Complaint newComplaint) {
+        List<Complaint> complaints = getComplaintsByPurchaseObjectId(newComplaint.getPurchaseObject().getId());
+        complaints.remove(newComplaint);
+        checkSumComplaintsCount(
+                complaints,
+                newComplaint.getComplaintCount(),
+                newComplaint.getPurchaseObject().getProductCount());
+
+        return complaintRepository.save(newComplaint);
     }
 }
