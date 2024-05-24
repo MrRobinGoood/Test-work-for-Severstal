@@ -6,15 +6,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.bartenev.severstal.dto.PaginatedPurchaseObjectsDTO;
-import ru.bartenev.severstal.dto.PurchaseObjectDTO;
 import ru.bartenev.severstal.entity.PurchaseObject;
-import ru.bartenev.severstal.enums.DeliverySortingFields;
-import ru.bartenev.severstal.enums.SortingDirection;
-import ru.bartenev.severstal.mapper.PurchaseObjectMapper;
+import ru.bartenev.severstal.exception.PurchaseObjectNotFoundException;
 import ru.bartenev.severstal.repository.PurchaseObjectRepository;
-
-import java.util.List;
 
 @Service
 public class PurchaseObjectService {
@@ -29,6 +23,10 @@ public class PurchaseObjectService {
     public Page<PurchaseObject> getPurchaseObjectsPageByDeliveryId(Long deliveryId, Integer pageNum, Integer pageSize) {
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by("id"));
         return purchaseObjectRepository.findByDelivery_id(deliveryId, pageable);
+    }
+
+    public  PurchaseObject getPurchaseObjectById(Long id){
+        return purchaseObjectRepository.findById(id).orElseThrow(() -> new PurchaseObjectNotFoundException("Purchase object with id: " + id + " not found."));
     }
 
 }

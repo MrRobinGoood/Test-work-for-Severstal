@@ -13,7 +13,6 @@ import java.math.BigDecimal;
 @RequiredArgsConstructor
 public class ComplaintDTO {
     private Long id;
-    private PurchaseObjectDTO purchaseObject;
     private BigDecimal complaintCount;
     private BigDecimal percentComplaintCount;
     private BigDecimal pricePerAllComplaintCount;

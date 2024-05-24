@@ -7,7 +7,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import ru.bartenev.severstal.entity.Delivery;
 
+import java.util.Optional;
+
 @Repository
 public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
-    Page<Delivery> findAll(@NonNull Pageable pageable);
+    Page<Delivery> findAll(Pageable pageable);
+    Optional<Delivery> findById(Long id);
 }

@@ -25,9 +25,9 @@ public class PurchaseObjectController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/{id}/purchase-objects")
+    @GetMapping(value = "/{deliveryId}/purchase-objects")
     public PaginatedPurchaseObjectsDTO getPaginatedPurchaseObjects(
-            @PathVariable(value = "id") Long deliveryId,
+            @PathVariable(value = "deliveryId") Long deliveryId,
             @RequestParam(defaultValue = "1", name = "page") Integer pageNum,
             @RequestParam(defaultValue = "10", name = "size") Integer pageSize) {
 
