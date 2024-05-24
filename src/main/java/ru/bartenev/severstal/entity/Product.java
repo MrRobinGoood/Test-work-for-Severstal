@@ -1,5 +1,6 @@
 package ru.bartenev.severstal.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -29,6 +30,7 @@ public class Product {
     @Column(name = "title", nullable = false)
     private String title;
 
+    @JsonIgnore
     @OneToMany(mappedBy = "product", fetch = FetchType.LAZY)
     private List<PurchaseObject> purchaseObjects;
 }

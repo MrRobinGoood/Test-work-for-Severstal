@@ -14,6 +14,4 @@ public class PaginationConfig {
     private Integer pageSize;
     private Integer totalElements;
     private Integer totalPages;
-//    private String sortBy;
-//    private String sortDirection;
 }

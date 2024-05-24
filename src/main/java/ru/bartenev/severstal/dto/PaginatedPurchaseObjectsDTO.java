@@ -11,7 +11,8 @@ import java.util.List;
 @Getter
 @Setter
 @RequiredArgsConstructor
-public class PaginatedDeliveryDTO {
-    private List<Delivery> deliveries;
+public class PaginatedPurchaseObjectsDTO {
+    private Delivery delivery;
+    private List<PurchaseObjectDTO> purchaseObjects;
     private PaginationConfig config;
 }

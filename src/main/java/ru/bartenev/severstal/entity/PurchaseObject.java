@@ -38,7 +38,7 @@ public class PurchaseObject {
     private MeasureUnit measureUnit;
 
     @Column(name = "price_per_unit", nullable = false)
-    private BigDecimal price_per_unit;
+    private BigDecimal pricePerUnit;
 
     @ManyToOne
     @JoinColumn(name = "currency_type", referencedColumnName = "id", nullable = false)

@@ -20,10 +20,8 @@ public class DeliveryService {
         this.deliveryRepository = deliveryRepository;
     }
 
-    public Page<Delivery> getDeliveryPage(Integer pageNum, Integer pageSize, DeliverySortingFields sortBy, SortingDirection sortDirection) {
-
+    public Page<Delivery> getDeliveriesPage(Integer pageNum, Integer pageSize, DeliverySortingFields sortBy, SortingDirection sortDirection) {
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Direction.fromString(sortDirection.getTitle()),sortBy.getTitle()));
-
         return deliveryRepository.findAll(pageable);
     }
 }
