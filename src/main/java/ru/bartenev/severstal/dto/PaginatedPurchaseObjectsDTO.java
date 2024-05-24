@@ -12,7 +12,6 @@ import java.util.List;
 @Setter
 @RequiredArgsConstructor
 public class PaginatedPurchaseObjectsDTO {
-    private Delivery delivery;
     private List<PurchaseObjectDTO> purchaseObjects;
     private PaginationConfig config;
 }

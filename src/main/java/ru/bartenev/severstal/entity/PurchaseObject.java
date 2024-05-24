@@ -30,8 +30,8 @@ public class PurchaseObject {
     @JoinColumn(name = "product", referencedColumnName = "id", nullable = false)
     private Product product;
 
-    @Column(name = "count_of", nullable = false)
-    private BigDecimal countOf;
+    @Column(name = "productCount", nullable = false)
+    private BigDecimal productCount;
 
     @ManyToOne
     @JoinColumn(name = "measure_unit", referencedColumnName = "id", nullable = false)

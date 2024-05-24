@@ -25,8 +25,8 @@ public class Complaint {
     @JoinColumn(name = "purchase_object", referencedColumnName = "id", nullable = false)
     private PurchaseObject purchaseObject;
 
-    @Column(name = "count_of", nullable = false)
-    private BigDecimal countOf;
+    @Column(name = "complaintCount", nullable = false)
+    private BigDecimal complaintCount;
 
     @ManyToOne
     @JoinColumn(name = "reason", referencedColumnName = "id", nullable = false)

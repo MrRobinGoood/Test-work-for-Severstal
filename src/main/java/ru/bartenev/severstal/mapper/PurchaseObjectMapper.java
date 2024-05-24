@@ -13,7 +13,7 @@ import java.util.List;
 
 @Mapper(componentModel = "spring")
 public interface PurchaseObjectMapper {
-    @Mapping(target = "pricePerAllCount", expression = "java(purchaseObject.getPricePerUnit().multiply(purchaseObject.getCountOf()))")
+    @Mapping(target = "pricePerAllCount", expression = "java(purchaseObject.getPricePerUnit().multiply(purchaseObject.getProductCount()))")
     @Mapping(target = "hasComplaints", expression = "java(!purchaseObject.getComplaints().isEmpty())")
     PurchaseObjectDTO purchaseObjectToPurchaseObjectDTO (PurchaseObject purchaseObject);
 
@@ -24,6 +24,5 @@ public interface PurchaseObjectMapper {
     @Mapping(target = "config.totalElements", source = "purchaseObjects.totalElements")
     @Mapping(target = "config.totalPages", source = "purchaseObjects.totalPages")
     @Mapping(target = "purchaseObjects", source = "purchaseObjects.content")
-    @Mapping(target = "delivery", expression = "java(purchaseObjects.getContent().get(0).getDelivery())")
     PaginatedPurchaseObjectsDTO purchaseObjectsPageToPaginatedPurchaseObjectsDTO(Page<PurchaseObject> purchaseObjects);
 }

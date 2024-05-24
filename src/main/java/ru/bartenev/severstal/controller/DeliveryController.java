@@ -11,7 +11,7 @@ import ru.bartenev.severstal.service.DeliveryService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/delivery")
+@RequestMapping("/deliveries")
 public class DeliveryController {
     private DeliveryService deliveryService;
     private DeliveryMapper deliveryMapper;

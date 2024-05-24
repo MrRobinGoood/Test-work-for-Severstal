@@ -13,7 +13,7 @@ import ru.bartenev.severstal.service.PurchaseObjectService;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("/delivery")
+@RequestMapping("/deliveries")
 public class PurchaseObjectController {
     private PurchaseObjectService purchaseObjectService;
     private PurchaseObjectMapper purchaseObjectMapper;
@@ -25,13 +25,11 @@ public class PurchaseObjectController {
     }
 
     @ResponseStatus(HttpStatus.OK)
-    @GetMapping(value = "/{id}")
+    @GetMapping(value = "/{id}/purchase-objects")
     public PaginatedPurchaseObjectsDTO getPaginatedPurchaseObjects(
             @PathVariable(value = "id") Long deliveryId,
             @RequestParam(defaultValue = "1", name = "page") Integer pageNum,
-            @RequestParam(defaultValue = "10", name = "size") Integer pageSize,
-            @RequestParam(defaultValue = "DELIVERY_DATETIME", name = "sortBy") String sortBy,
-            @RequestParam(defaultValue = "DESC", name = "sortDirection") String sortDirection) {
+            @RequestParam(defaultValue = "10", name = "size") Integer pageSize) {
 
         return purchaseObjectMapper.purchaseObjectsPageToPaginatedPurchaseObjectsDTO(
                 purchaseObjectService.getPurchaseObjectsPageByDeliveryId(deliveryId, pageNum, pageSize));

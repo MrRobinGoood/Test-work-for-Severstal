@@ -13,7 +13,7 @@ import java.math.BigDecimal;
 public class PurchaseObjectDTO {
     private Long id;
     private Product product;
-    private BigDecimal countOf;
+    private BigDecimal productCount;
     private MeasureUnit measureUnit;
     private BigDecimal pricePerUnit;
     private BigDecimal pricePerAllCount;
