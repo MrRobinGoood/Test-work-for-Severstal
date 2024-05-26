@@ -26,7 +26,7 @@ public interface ComplaintMapper {
 
     Complaint complaintCreationDTOtoComplaint( PurchaseObject purchaseObject, ComplaintCreationDTO complaintCreationDTO, Reason reason);
 
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.SET_TO_NULL)
     void updateComplaintFromComplaintCreationDTO(ComplaintCreationDTO complaintCreationDTO, @MappingTarget Complaint complaint);
 
 }

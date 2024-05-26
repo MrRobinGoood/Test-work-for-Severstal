@@ -30,7 +30,9 @@
                 <th>Percent of Complaints</th>
                 <th>Price Per All Complaint Count</th>
                 <th>Reason</th>
-                <th>Commentary</th> <!-- Добавленный столбец для комментариев -->
+                <th>Commentary</th>
+                <th>Action</th>
+                <th>Delete</th> 
             </tr>
         </thead>
         <tbody>
@@ -43,7 +45,7 @@
     </div>
     <div class="form-group">
         <label for="complaintCount">Complaint Count:</label>
-        <input type="number" class="form-control" id="complaintCount" step="0.0001" min="0">
+        <input type="number" class="form-control" id="complaintCount" step="0.1" min="0">
     </div>
     <div class="form-group">
         <label for="reasonSelect">Reason:</label>
@@ -61,8 +63,8 @@
 $(document).ready(function() {
     var purchaseObjectId = ''; // ID текущего объекта покупки
     var deliveryId = '';
-    var isReasonReady = true;
-    var isComplaintCountReady = false;
+    var reasonsById = {}; // Список причин по id
+    var complaintsData = []; // Данные о жалобах для редактирования
 
     function loadPurchaseObjectDetails(id) {
         $.ajax({
@@ -100,13 +102,16 @@ $(document).ready(function() {
                 response.complaints.forEach(complaint => {
                     var row = $('<tr>');
                     row.append('<td>' + complaint.id + '</td>');
-                    row.append('<td>' + complaint.complaintCount.toFixed(1) + '</td>');
+                    row.append('<td>' + complaint.complaintCount.toFixed(3) + '</td>');
                     row.append('<td>' + complaint.percentComplaintCount.toFixed(1) + '%</td>');
                     row.append('<td>' + complaint.pricePerAllComplaintCount.toFixed(2) + '</td>');
                     row.append('<td>' + complaint.reason.title + '</td>');
                     row.append('<td>' + (complaint.commentary? complaint.commentary : '-') + '</td>');
+                    row.append('<td><button class="edit-btn" data-complaint-id="' + complaint.id + '">Edit</button></td>');
+                    row.append('<td><button class="delete-btn" data-complaint-id="'+ complaint.id +'">Delete</button></td>');
                     tbody.append(row);
                 });
+                saveComplaintsData(response); // Сохраняем данные о жалобах
             },
             error: function(error) {
                 console.error('Ошибка при загрузке жалоб:', error);
@@ -114,28 +119,46 @@ $(document).ready(function() {
         });
     }
 
-    function loadReasons() {
-    $.ajax({
-        url: 'http://localhost:8081/reasons',
-        method: 'GET',
-        success: function(response) {
-            var select = $('#reasonSelect');
-            select.empty(); // Очищаем предыдущие значения
-            // Добавляем пустое значение в начало списка
-            var emptyOption = $('<option>').val('').text('Выберите причину...');
-            select.prepend(emptyOption); // Добавляем пустую опцию в начало списка
-            response.forEach(reason => {
-                var option = $('<option>').val(reason.id).text(reason.title);
-                select.append(option);
-            });
-        },
-        error: function(error) {
-            console.error('Ошибка при загрузке причин:', error);
-        }
-    });
+    function saveComplaintsData(data) {
+        complaintsData = data.complaints.map(complaint => ({
+            id: complaint.id,
+            complaintCount: complaint.complaintCount,
+            percentComplaintCount: complaint.percentComplaintCount,
+            pricePerAllComplaintCount: complaint.pricePerAllComplaintCount,
+            reasonId: complaint.reason.id, // Сохраняем reasonId здесь
+            title: complaint.reason.title,
+            commentary: complaint.commentary
+        }));
     }
 
-    loadReasons();
+    function loadReasons(callback) {
+        $.ajax({
+            url: 'http://localhost:8081/reasons',
+            method: 'GET',
+            success: function(response) {
+                var reasonsById = {};
+                response.forEach(reason => {
+                    reasonsById[reason.id] = reason.title;
+                });
+                callback(reasonsById);
+            },
+            error: function(error) {
+                console.error('Ошибка при загрузке причин:', error);
+            }
+        });
+    }
+
+    loadReasons(function(reasons) {
+        reasonsById = reasons;
+        var select = $('#reasonSelect');
+        select.empty();
+        var emptyOption = $('<option>').val('').text('Выберите причину...');
+        select.prepend(emptyOption);
+        Object.values(reasons).forEach(title => {
+            var option = $('<option>').val(title).text(title);
+            select.append(option);
+        });
+    });
 
     var urlParams = new URLSearchParams(window.location.search);
     var purchaseObjectIdFromUrl = urlParams.get('id');
@@ -145,60 +168,162 @@ $(document).ready(function() {
         console.log("ID объекта объекта закупки не указан");
     }
 
-    loadComplaints(purchaseObjectIdFromUrl); // Предполагается, что purchaseObjectIdFromUrl определен где-то выше
-
     $('#backToPurchaseObjects').on('click', function() {
         window.location.href = 'delivery-details.html?id=' + deliveryId;
     });
 
+    $('body').on('click', '.edit-btn', function() {
+        var complaintRow = $(this).closest('tr');
+        var complaintData = complaintsData.find(cd => cd.id == parseInt($(this).data('complaint-id'))); // Находим данные жалобы по id
 
+        var complaintId = complaintData.id; // ID жалобы
+        var complaintCount = complaintData.complaintCount; // Количество жалоб
+        var reasonTitle = complaintData.title; // Название причины
+        var commentary = complaintData.commentary; // Комментарий
 
-    function allChecked() {
-        // Инициализация состояния кнопки при загрузке страницы
-        if (!$('#complaintCount').val() || $('#reasonSelect').val() === '') { // Условие осталось прежним
-                $('#saveButton').prop('disabled', true);
-            } else {
-                $('#saveButton').prop('disabled', false);
-            }
-    
-}
+        // Находим id причины по её названию
+        var reasonId = complaintData.reasonId; // Используем reasonId из сохраненных данных
+        console.log(reasonId);
+        // Теперь, когда у нас есть reasonId, мы можем использовать его для установки значения в комбоксе
+        $('#complaintId').val(complaintId);
+        $('#complaintCount').val(complaintCount);
+        document.getElementById("reasonSelect").selectedIndex = reasonId; // Устанавливаем id причины в качестве значения
+        $('#commentInput').val(commentary);
 
-allChecked();
-
-
-    // Отслеживание изменения в поле complaintCount
-    $('#complaintCount').on('input', function() {
-        allChecked();
-        });
-
-    // Отслеживание изменения значения в combobox
-    $('#reasonSelect').on('change', function() {
-        allChecked();
-       
+        // Включаем кнопку сохранения
+        $('#saveButton').prop('disabled', false);
     });
 
-    
+    function allChecked() {
+        if (!$('#complaintCount').val() || $('#reasonSelect').val() === '') {
+            $('#saveButton').prop('disabled', true);
+        } else {
+            $('#saveButton').prop('disabled', false);
+        }
+    }
+
+    allChecked();
+
+
+// Обновленный обработчик событий для complaintCount
+$('#complaintCount').on('input', function() {
+
+    allChecked(); // Проверяем, можно ли сохранить форму
+});
+
+$('#complaintCount').on('keypress', function(e) {
+    // Проверяем, является ли символ цифрой или запятой
+    var charCode = e.which? e.which : e.keyCode;
+    var char = String.fromCharCode(charCode);
+    var regex = /^[0-9.,]+$/; // Регулярное выражение для проверки символа
+
+    // Если символ не соответствует регулярному выражению, предотвращаем его ввод
+    if (!regex.test(char)) {
+        e.preventDefault();
+    }
+});
+
+
+    $('#reasonSelect').on('change', function() {
+        allChecked();
+    });
+
+
+    function validateComplaintCount() {
+    var complaintCount = $('#complaintCount').val();
+    if (parseFloat(complaintCount) < 0.001) {
+        alert("Ошибка Нельзя установить количество рекламации меньше 0.001.");
+        return false; // Возвращаем false, чтобы предотвратить выполнение запроса
+    }
+    return true; // Возвращаем true, если условие прошло
+}
 
     $('#saveButton').on('click', function() {
-    var decimalValue = $('#decimalInput').val();
-    var selectedReasonId = $('#reasonSelect').val();
-    var comment = $('#commentInput').val();
 
-    // Здесь должен быть ваш код для отправки данных на сервер
-    // Например:
+        if (!validateComplaintCount()) {
+        return; // Прекратите выполнение, если функция validateComplaintCount вернула false
+    }
+
+    var complaintId = $('#complaintId').val();
+    var complaintCount = $('#complaintCount').val();
+    var selectedReasonId = document.getElementById("reasonSelect").selectedIndex;
+    var comment = $('#commentInput').val();
+    console.log(comment)
+
+    // Формируем тело запроса
+    var requestBody = {
+        "complaintCount": complaintCount,
+        "reasonId": selectedReasonId,
+        "commentary": comment? comment : null
+    };
+
+    // Определяем URL в зависимости от того, есть ли complaintId
+    var apiUrl = complaintId? 'http://localhost:8081/purchase-objects/complaints/' + complaintId : 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/complaints';
+
+    // Выполняем запрос
     $.ajax({
-        url: 'http://localhost:8081/save-data', // Замените на актуальный URL для сохранения данных
-        method: 'POST',
-        data: JSON.stringify({ decimalValue: decimalValue, reasonId: selectedReasonId, comment: comment }),
+        url: apiUrl,
+        method: complaintId? 'PUT' : 'POST',
         contentType: 'application/json',
+        data: JSON.stringify(requestBody),
         success: function(response) {
-            console.log('Данные успешно сохранены:', response);
+            console.log('Запрос успешно выполнен');
+            // Очистка форм после сохранения
+            $('#complaintId').val('');
+            $('#complaintCount').val('');
+            $('#reasonSelect').val('');
+            $('#commentInput').val('');
+            allChecked(); // Обновление состояния кнопки сохранения
+            location.reload(); // Перезагружаем страницу.
         },
-        error: function(error) {
-            console.error('Ошибка при сохранении данных:', error);
+        error: function(jqXHR, textStatus, errorThrown) {
+            // Проверяем, что ответ содержит поле message
+            if (jqXHR.responseJSON && jqXHR.responseJSON.message === "Count of all complaints can not be more than count of all products.") {
+                // Выводим сообщение об ошибке пользователю
+                alert('Произошла ошибка при сохранении жалобы. Количество рекламации не может быть больше количества продукта.');
+            } else {
+                // Если сообщение об ошибке отсутствует, выводим стандартное сообщение об ошибке
+                alert('Произошла ошибка при сохранении жалобы.');
+            }
         }
     });
 });
+
+$('#resetButton').on('click', function() {
+    // Сбрасываем значение complaintId
+    $('#complaintId').val('');
+
+    $('#complaintCount').val('');
+
+    // Сбрасываем выбранный элемент в dropdown reasonSelect обратно в первый элемент или в дефолтный
+    $('#reasonSelect').val('').trigger('change');
+
+    // Сбрасываем текстовое поле commentInput
+    $('#commentInput').val('');
+
+    // Возвращаем кнопку сохранения в активное состояние, если это необходимо
+    allChecked(); // Это вызывает проверку, которая включает кнопку сохранения, если все обязательные поля заполнены
+});
+
+$('body').on('click', '.delete-btn', function() {
+    var complaintId = $(this).data('complaint-id'); // Получаем ID жалобы из атрибута data-
+    var confirmation = confirm("Вы точно хотите удалить рекламацию с номером " + complaintId + "?");
+
+    if (confirmation) {
+        $.ajax({
+            url: 'http://localhost:8081/purchase-objects/complaints/' + complaintId,
+            method: 'DELETE',
+            success: function(response) {
+                console.log('Жалоба успешно удалена');
+                location.reload(); // Перезагружаем страницу после успешного удаления
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Ошибка при удалении жалобы:', errorThrown);
+            }
+        });
+    }
+});
+
 
 });
 </script>
