@@ -37,10 +37,13 @@
             <!-- Здесь будут динамически добавляться строки -->
         </tbody>
     </table>
-
     <div class="form-group">
-        <label for="decimalInput">Decimal Input:</label>
-        <input type="number" class="form-control" id="decimalInput" step="0.0001" min="0">
+        <label for="complaintId">Complaint ID:</label>
+        <input type="number" class="form-control" id="complaintId" min="0" readonly>
+    </div>
+    <div class="form-group">
+        <label for="complaintCount">Complaint Count:</label>
+        <input type="number" class="form-control" id="complaintCount" step="0.0001" min="0">
     </div>
     <div class="form-group">
         <label for="reasonSelect">Reason:</label>
@@ -50,13 +53,16 @@
         <label for="commentInput">Comment:</label>
         <textarea class="form-control" id="commentInput" maxlength="1000"></textarea>
     </div>
-    <button id="saveButton" class="btn btn-primary">Save</button>
+    <button id="saveButton" class="btn btn-primary">Save complaint</button>
+    <button id="resetButton" class="btn btn-secondary">Reset</button>
 </div>
 
 <script>
 $(document).ready(function() {
     var purchaseObjectId = ''; // ID текущего объекта покупки
     var deliveryId = '';
+    var isReasonReady = true;
+    var isComplaintCountReady = false;
 
     function loadPurchaseObjectDetails(id) {
         $.ajax({
@@ -115,6 +121,9 @@ $(document).ready(function() {
         success: function(response) {
             var select = $('#reasonSelect');
             select.empty(); // Очищаем предыдущие значения
+            // Добавляем пустое значение в начало списка
+            var emptyOption = $('<option>').val('').text('Выберите причину...');
+            select.prepend(emptyOption); // Добавляем пустую опцию в начало списка
             response.forEach(reason => {
                 var option = $('<option>').val(reason.id).text(reason.title);
                 select.append(option);
@@ -124,7 +133,7 @@ $(document).ready(function() {
             console.error('Ошибка при загрузке причин:', error);
         }
     });
-}   
+    }
 
     loadReasons();
 
@@ -136,9 +145,39 @@ $(document).ready(function() {
         console.log("ID объекта объекта закупки не указан");
     }
 
+    loadComplaints(purchaseObjectIdFromUrl); // Предполагается, что purchaseObjectIdFromUrl определен где-то выше
+
     $('#backToPurchaseObjects').on('click', function() {
         window.location.href = 'delivery-details.html?id=' + deliveryId;
     });
+
+
+
+    function allChecked() {
+        // Инициализация состояния кнопки при загрузке страницы
+        if (!$('#complaintCount').val() || $('#reasonSelect').val() === '') { // Условие осталось прежним
+                $('#saveButton').prop('disabled', true);
+            } else {
+                $('#saveButton').prop('disabled', false);
+            }
+    
+}
+
+allChecked();
+
+
+    // Отслеживание изменения в поле complaintCount
+    $('#complaintCount').on('input', function() {
+        allChecked();
+        });
+
+    // Отслеживание изменения значения в combobox
+    $('#reasonSelect').on('change', function() {
+        allChecked();
+       
+    });
+
+    
 
     $('#saveButton').on('click', function() {
     var decimalValue = $('#decimalInput').val();
