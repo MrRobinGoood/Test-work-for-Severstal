@@ -37,6 +37,20 @@
             <!-- Здесь будут динамически добавляться строки -->
         </tbody>
     </table>
+
+    <div class="form-group">
+        <label for="decimalInput">Decimal Input:</label>
+        <input type="number" class="form-control" id="decimalInput" step="0.0001" min="0">
+    </div>
+    <div class="form-group">
+        <label for="reasonSelect">Reason:</label>
+        <select class="form-control" id="reasonSelect"></select>
+    </div>
+    <div class="form-group">
+        <label for="commentInput">Comment:</label>
+        <textarea class="form-control" id="commentInput" maxlength="1000"></textarea>
+    </div>
+    <button id="saveButton" class="btn btn-primary">Save</button>
 </div>
 
 <script>
@@ -94,6 +108,26 @@ $(document).ready(function() {
         });
     }
 
+    function loadReasons() {
+    $.ajax({
+        url: 'http://localhost:8081/reasons',
+        method: 'GET',
+        success: function(response) {
+            var select = $('#reasonSelect');
+            select.empty(); // Очищаем предыдущие значения
+            response.forEach(reason => {
+                var option = $('<option>').val(reason.id).text(reason.title);
+                select.append(option);
+            });
+        },
+        error: function(error) {
+            console.error('Ошибка при загрузке причин:', error);
+        }
+    });
+}   
+
+    loadReasons();
+
     var urlParams = new URLSearchParams(window.location.search);
     var purchaseObjectIdFromUrl = urlParams.get('id');
     if (purchaseObjectIdFromUrl) {
@@ -105,6 +139,27 @@ $(document).ready(function() {
     $('#backToPurchaseObjects').on('click', function() {
         window.location.href = 'delivery-details.html?id=' + deliveryId;
     });
+
+    $('#saveButton').on('click', function() {
+    var decimalValue = $('#decimalInput').val();
+    var selectedReasonId = $('#reasonSelect').val();
+    var comment = $('#commentInput').val();
+
+    // Здесь должен быть ваш код для отправки данных на сервер
+    // Например:
+    $.ajax({
+        url: 'http://localhost:8081/save-data', // Замените на актуальный URL для сохранения данных
+        method: 'POST',
+        data: JSON.stringify({ decimalValue: decimalValue, reasonId: selectedReasonId, comment: comment }),
+        contentType: 'application/json',
+        success: function(response) {
+            console.log('Данные успешно сохранены:', response);
+        },
+        error: function(error) {
+            console.error('Ошибка при сохранении данных:', error);
+        }
+    });
+});
 
 });
 </script>
