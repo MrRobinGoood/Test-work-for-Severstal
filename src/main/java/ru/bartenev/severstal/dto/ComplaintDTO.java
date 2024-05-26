@@ -17,4 +17,5 @@ public class ComplaintDTO {
     private BigDecimal percentComplaintCount;
     private BigDecimal pricePerAllComplaintCount;
     private Reason reason;
+    private String commentary;
 }

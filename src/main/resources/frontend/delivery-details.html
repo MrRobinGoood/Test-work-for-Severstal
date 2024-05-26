@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Delivery Details</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <style>
+     .hidden-checkbox {
+            display: none; /* Скрываем сам чекбокс */
+        }
+
+     .checkbox-indicator {
+            width: 20px;
+            height: 20px;
+            border: 1px solid #ccc;
+            display: inline-block;
+            vertical-align: middle;
+            position: relative;
+        }
+
+     .checkbox-indicator::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 12px;
+            height: 12px;
+            background-color: #fff; /* Белый фон галочки */
+            border: 1px solid #ccc; /* Граница вокруг галочки */
+            border-radius: 3px; /* Радиус углов галочки */
+            opacity: 0; /* Начальное состояние галочки */
+            transition: opacity 0.3s ease-in-out; /* Анимация изменения прозрачности */
+        }
+
+        /* Изменяем цвет галочки при выборе чекбокса */
+     .custom-checkbox input[type="checkbox"]:checked ~.checkbox-indicator::before {
+            opacity: 1; /* Показываем галочку */
+            background-color: red; /* Цвет галочки */
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <button id="backToDeliveries" class="btn btn-secondary">Back to Deliveries</button>
+
+    <h2>Delivery Details</h2>
+    <p>ID: <span id="deliveryId"></span></p>
+    <p>Provider: <span id="providerName"></span></p>
+    <p>Address: <span id="addressTitle"></span></p>
+    <p>Delivery DateTime: <span id="deliveryDateTime"></span></p>
+    <p>Status: <span id="statusTitle"></span></p>  
+
+    <h3>Purchase Objects</h3>
+    <table class="table table-striped" id="purchaseObjectsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product Type</th>
+                <th>Product Title</th>
+                <th>Product Count</th>
+                <th>Measure Unit</th>
+                <th>Price per Unit</th>
+                <th>Total Price</th>
+                <th>Currency Type</th>
+                <th>Has Complaints</th>
+                <th>All Checked</th>
+                <th>Action</th> <!-- Новый столбец -->
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Здесь будут динамически добавляться строки -->
+        </tbody>
+    </table>
+    
+    <button id="completeDeliveryCheck" class="btn btn-primary" disabled>Complete delivery check</button>
+</div>
+
+<script>
+$(document).ready(function() {
+    var deliveryId = ''; // ID текущей доставки
+    var providerName = '';
+    var addressTitle = '';
+    var deliveryDateTime = '';
+    var statusTitle = '';
+
+    function loadDeliveryDetails(id) {
+        $.ajax({
+            url: 'http://localhost:8081/deliveries/' + id,
+            method: 'GET',
+            success: function(response) {
+                deliveryId = response.id;
+                providerName = response.provider.title;
+                addressTitle = response.address.title;
+                deliveryDateTime = response.deliveryDateTime;
+                statusTitle = response.status.title;
+                
+                $('#deliveryId').text(response.id);
+                $('#providerName').text(providerName);
+                $('#addressTitle').text(addressTitle);
+                $('#deliveryDateTime').text(deliveryDateTime);
+                $('#statusTitle').text(statusTitle);
+                
+                loadPurchaseObjects(id);
+            },
+            error: function(error) {
+                console.error('Ошибка при загрузке деталей доставки:', error);
+            }
+        });
+    }
+
+    function loadPurchaseObjects(deliveryId) {
+        $.ajax({
+            url: 'http://localhost:8081/deliveries/' + deliveryId + '/purchase-objects?page=1&size=1000',
+            method: 'GET',
+            success: function(response) {
+                var tbody = $('#purchaseObjectsTable tbody');
+                tbody.empty();
+                response.purchaseObjects.forEach(purchaseObject => {
+                    var row = $('<tr>');
+                    row.append('<td>' + purchaseObject.id + '</td>');
+                    row.append('<td>' + purchaseObject.product.productType.title + '</td>');
+                    row.append('<td>' + purchaseObject.product.title + '</td>');
+                    row.append('<td>' + parseFloat(purchaseObject.productCount).toFixed(3) + '</td>');
+                    row.append('<td>' + purchaseObject.measureUnit.title + '</td>');
+                    row.append('<td>' + parseFloat(purchaseObject.pricePerUnit).toFixed(3) + '</td>');
+                    row.append('<td>' + (parseFloat(purchaseObject.productCount) * parseFloat(purchaseObject.pricePerUnit)).toFixed(3) + '</td>');
+                    row.append('<td>' + purchaseObject.currencyType.title + '</td>');
+                    row.append('<td>' + (purchaseObject.hasComplaints? 'Yes' : 'No') + '</td>');
+                    
+                    var isChecked = purchaseObject.checked? 'checked' : '';
+                    row.append('<td><label class="custom-checkbox" for="check-' + purchaseObject.id + '">' +
+                                '<input type="checkbox" id="check-' + purchaseObject.id + '" class="hidden-checkbox" ' + isChecked + '>' +
+                                '<span class="checkbox-indicator"></span></label></td>');
+                    
+                    row.append('<td><a href="complaints.html?id=' + purchaseObject.id + '" class="btn btn-primary">View Details</a></td>'); // Кнопка "View Details"
+                    
+                    tbody.append(row);
+                });
+
+                $('.custom-checkbox input[type="checkbox"]').on('change', function() {
+                    var $checkbox = $(this);
+                    var purchaseObjectId = $checkbox.attr('id').replace('check-', '');
+                    var requestBody = $checkbox.is(':checked')? '{"checked": true}' : '{"checked": false}';
+                    
+                    var completeButton = $('#completeDeliveryCheck');
+
+                    if (allChecked()) {
+                        completeButton.prop('disabled', false);
+                    } else {
+                        completeButton.prop('disabled', true);
+                    }
+
+                    $.ajax({
+                        url: 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/checked',
+                        method: 'PATCH',
+                        contentType: 'application/json',
+                        data: requestBody,
+                        success: function(response) {
+                            console.log("Запрос успешно выполнен для объекта ID:", purchaseObjectId);
+                        },
+                        error: function(error) {
+                            console.error("Ошибка при обновлении состояния чекбокса для объекта ID:", purchaseObjectId, error);
+                        }
+                    });
+                });
+            },
+            error: function(error) {
+                console.error('Ошибка при загрузке покупательных объектов:', error);
+            }
+        });
+    }
+
+   
+
+    var urlParams = new URLSearchParams(window.location.search);
+    var deliveryIdFromUrl = urlParams.get('id');
+    if (deliveryIdFromUrl) {
+        loadDeliveryDetails(deliveryIdFromUrl);
+    } else {
+        console.log("ID не указан");
+    }
+
+    $('#backToDeliveries').on('click', function() {
+        window.location.href = 'index.html';
+    });
+
+     // Создаем экземпляр MutationObserver
+     var observer = new MutationObserver(function(mutations) {
+        mutations.forEach(function(mutation) {
+            // Проверяем, было ли добавлено новое содержимое
+            if (mutation.addedNodes.length > 0) {
+                // Проверяем, все ли чекбоксы теперь выбраны
+                if (allChecked()) {
+                    $('#completeDeliveryCheck').prop('disabled', false);
+                } else {
+                    $('#completeDeliveryCheck').prop('disabled', true);
+                }
+            }
+        });
+    });
+
+    // Настройки наблюдателя
+    var config = { childList: true, subtree: true };
+
+    // Начинаем наблюдение за всеми дочерними узлами body
+    observer.observe(document.body, config);
+
+    // Функция для проверки всех чекбоксов
+    function allChecked() {
+        return $('.custom-checkbox input[type="checkbox"]:checked').length === $('.custom-checkbox input[type="checkbox"]').length;
+    }
+
+    // Инициализация состояния кнопки при загрузке страницы
+    if (allChecked()) {
+        $('#completeDeliveryCheck').prop('disabled', false);
+    } else {
+        $('#completeDeliveryCheck').prop('disabled', true);
+    }
+
+    $('#completeDeliveryCheck').on('click', function() {
+        var deliveryId = $('#deliveryId').text();
+
+        $.ajax({
+            url: 'http://localhost:8081/deliveries/' + deliveryId,
+            method: 'POST',
+            success: function(response) {
+                console.log("Доставка помечена как завершенная.");
+                location.reload(); // Перезагружаем страницу.
+            },
+            error: function(error) {
+                console.error("Ошибка при завершении доставки:", error);
+            }
+        });
+    });
+   
+});
+</script>
+</body>
+</html>

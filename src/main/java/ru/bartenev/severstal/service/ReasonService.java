@@ -6,6 +6,8 @@ import ru.bartenev.severstal.entity.Reason;
 import ru.bartenev.severstal.exception.InvalidParametersException;
 import ru.bartenev.severstal.repository.ReasonRepository;
 
+import java.util.List;
+
 @Service
 public class ReasonService {
     private ReasonRepository reasonRepository;
@@ -17,5 +19,9 @@ public class ReasonService {
 
     public Reason getReasonById(Long id) {
         return reasonRepository.findById(id).orElseThrow(() -> new InvalidParametersException("Invalid request body parameters. Reason with id: " + id + " does not exists."));
+    }
+
+    public List<Reason> getAllReasons(){
+        return reasonRepository.findAll();
     }
 }

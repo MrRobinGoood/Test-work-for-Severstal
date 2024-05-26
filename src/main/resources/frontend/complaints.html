@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Complaints Details</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <button id="backToPurchaseObjects" class="btn btn-secondary">Back to Purchase Objects</button>
+
+    <h2>Purchase Object Details</h2>
+    <p>Purchase Object ID: <span id="purchaseObjectId"></span></p>
+    <p>Product Type: <span id="productType"></span></p>
+    <p>Product Title: <span id="productTitle"></span></p>
+    <p>Product Count: <span id="productCount"></span></p>
+    <p>Measure Unit: <span id="measureUnit"></span></p>
+    <p>Price per Unit: <span id="pricePerUnit"></span></p>
+    <p>Total Price: <span id="totalPrice"></span></p>
+    <p>Currency Type: <span id="currencyType"></span></p>
+    <p>Has Complaints: <span id="hasComplaints"></span></p>
+    <p>Delivery Id: <span id="deliveryId"></span></p>
+    
+    <h3>Complaints</h3>
+    <table class="table table-striped" id="complaintsTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Complaint Count</th>
+                <th>Percent of Complaints</th>
+                <th>Price Per All Complaint Count</th>
+                <th>Reason</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Здесь будут динамически добавляться строки -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+$(document).ready(function() {
+    var purchaseObjectId = ''; // ID текущего объекта покупки
+    var deliveryId = '';
+
+    function loadPurchaseObjectDetails(id) {
+        $.ajax({
+            url: 'http://localhost:8081/purchase-objects/' + id,
+            method: 'GET',
+            success: function(response) {
+                purchaseObjectId = response.id;
+                $('#purchaseObjectId').text(response.id);
+                $('#productType').text(response.product.productType.title);
+                $('#productTitle').text(response.product.title);
+                $('#productCount').text(response.productCount);
+                $('#measureUnit').text(response.measureUnit.title);
+                $('#pricePerUnit').text(parseFloat(response.pricePerUnit).toFixed(3));
+                $('#totalPrice').text((parseFloat(response.productCount) * parseFloat(response.pricePerUnit)).toFixed(3));
+                $('#currencyType').text(response.currencyType.title);
+                $('#hasComplaints').text(response.hasComplaints? 'Yes' : 'No');
+                $('#deliveryId').text(response.deliveryId);
+                deliveryId = response.deliveryId;
+
+                loadComplaints(id);
+            },
+            error: function(error) {
+                console.error('Ошибка при загрузке деталей объекта покупки:', error);
+            }
+        });
+    }
+
+    function loadComplaints(purchaseObjectId) {
+    $.ajax({
+        url: 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/complaints',
+        method: 'GET',
+        success: function(response) {
+            var tbody = $('#complaintsTable tbody');
+            tbody.empty();
+            response.complaints.forEach(complaint => {
+                var row = $('<tr>');
+                row.append('<td>' + complaint.id + '</td>');
+                row.append('<td>' + complaint.complaintCount.toFixed(1) + '</td>'); // Округляем до одного знака после запятой
+                row.append('<td>' + complaint.percentComplaintCount.toFixed(1) + '%</td>'); // Округляем проценты до одной десятичной цифры
+                row.append('<td>' + complaint.pricePerAllComplaintCount.toFixed(2) + '</td>'); // Округляем до двух знаков после запятой
+                row.append('<td>' + complaint.reason.title + '</td>'); // Используем title из reason
+                tbody.append(row);
+            });
+        },
+        error: function(error) {
+            console.error('Ошибка при загрузке жалоб:', error);
+        }
+    });
+}
+
+    var urlParams = new URLSearchParams(window.location.search);
+    var purchaseObjectIdFromUrl = urlParams.get('id');
+    if (purchaseObjectIdFromUrl) {
+        loadPurchaseObjectDetails(purchaseObjectIdFromUrl);
+    } else {
+        console.log("ID объекта объекта закупки не указан");
+    }
+
+    $('#backToPurchaseObjects').on('click', function() {
+    window.location.href = 'delivery-details.html?id=' + deliveryId; // Предполагается, что у вас есть способ передачи ID объекта покупки на страницу DeliveryDetails
+});
+
+});
+</script>
+</body>
+</html>

@@ -28,6 +28,9 @@ public class Complaint {
     @Column(name = "complaintCount", nullable = false)
     private BigDecimal complaintCount;
 
+    @Column(name = "commentary", length = 1000)
+    private String commentary;
+
     @ManyToOne
     @JoinColumn(name = "reason", referencedColumnName = "id", nullable = false)
     private Reason reason;

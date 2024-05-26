@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>All Deliveries</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</head>
+<body>
+<div class="container">
+    <h2>All Deliveries</h2>
+    <select id="sortColumnSelect">
+        <option value="ID">ID</option>
+        <option value="PROVIDER">Provider</option>
+        <option value="ADDRESS">Address</option>
+        <option value="DELIVERY_DATETIME">Delivery DateTime</option>
+        <option value="STATUS">Status</option>
+    </select>
+    <select id="sortDirectionSelect">
+        <option value="ASC">Ascending</option>
+        <option value="DESC">Descending</option>
+    </select>
+    <button id="prevPageBtn" disabled>Previous Page</button>
+    <button id="nextPageBtn">Next Page</button>
+    <table class="table table-striped" id="deliveriesTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Provider</th>
+                <th>Address</th>
+                <th>Delivery DateTime</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Здесь будут динамически добавляться строки -->
+        </tbody>
+    </table>
+</div>
+
+<script>
+$(document).ready(function() {
+    var sortBy = 'ID';
+    var sortDirection = 'ASC';
+    var currentPage = 1;
+
+    function loadDeliveries(pageNumber = currentPage, sortByParam = sortBy, sortDirectionParam = sortDirection) {
+        $.ajax({
+            url: 'http://localhost:8081/deliveries?page=' + pageNumber + '&size=10&sortBy=' + sortByParam + '&sortDirection=' + sortDirectionParam,
+            method: 'GET',
+            success: function(response) {
+                var tbody = $('#deliveriesTable tbody');
+                tbody.empty();
+                response.deliveries.forEach(delivery => {
+                    var row = $('<tr>');
+                    row.append('<td>' + delivery.id + '</td>');
+                    row.append('<td>' + delivery.provider.title + '</td>');
+                    row.append('<td>' + delivery.address.title + '</td>');
+                    row.append('<td>' + delivery.deliveryDateTime + '</td>');
+                    row.append('<td>' + delivery.status.title + '</td>');
+                    row.append('<td><a href="delivery-details.html?id=' + delivery.id + '" class="btn btn-primary">View Details</a></td>');
+                    tbody.append(row);
+                });
+                currentPage = pageNumber;
+                updateNavigationButtons(response.config.totalPages); // Передаем totalPages напрямую
+            },
+            error: function(error) {
+                console.error('Ошибка при загрузке доставок:', error);
+            }
+        });
+    }
+
+    function updateNavigationButtons(totalPages) {
+        var hasNextPage = currentPage < totalPages;
+        var hasPreviousPage = currentPage > 1;
+        $('#nextPageBtn').prop('disabled',!hasNextPage);
+        $('#prevPageBtn').prop('disabled',!hasPreviousPage);
+    }
+
+    $('#sortColumnSelect, #sortDirectionSelect').on('change', function() {
+        var sortBy = $('#sortColumnSelect').val();
+        var sortDirection = $('#sortDirectionSelect').val();
+        loadDeliveries(currentPage, sortBy, sortDirection);
+    });
+
+    $('#prevPageBtn').on('click', function() {
+        var sortBy = $('#sortColumnSelect').val();
+        var sortDirection = $('#sortDirectionSelect').val();
+        loadDeliveries(currentPage - 1, sortBy, sortDirection);
+    });
+    $('#nextPageBtn').on('click', function() {
+        var sortBy = $('#sortColumnSelect').val();
+        var sortDirection = $('#sortDirectionSelect').val();
+        loadDeliveries(currentPage + 1, sortBy, sortDirection);
+    });
+
+    loadDeliveries();
+    updateNavigationButtons(12); // Инициализация с предположительным значением totalPages
+});
+</script>
+</body>
+</html>

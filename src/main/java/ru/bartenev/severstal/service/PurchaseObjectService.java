@@ -35,4 +35,8 @@ public class PurchaseObjectService {
         return purchaseObjectRepository.findById(id).orElseThrow(() -> new PurchaseObjectNotFoundException("Purchase object with id: " + id + " not found."));
     }
 
+    public PurchaseObject savePurchaseObject(PurchaseObject purchaseObject){
+        return purchaseObjectRepository.save(purchaseObject);
+    }
+
 }

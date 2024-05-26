@@ -1,13 +1,14 @@
 package ru.bartenev.severstal.controller;
 
+import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import ru.bartenev.severstal.dto.PaginatedPurchaseObjectsDTO;
-import ru.bartenev.severstal.dto.PurchaseObjectDTO;
-import ru.bartenev.severstal.enums.DeliverySortingFields;
-import ru.bartenev.severstal.enums.SortingDirection;
+import ru.bartenev.severstal.dto.*;
+
+import ru.bartenev.severstal.entity.PurchaseObject;
 import ru.bartenev.severstal.mapper.PurchaseObjectMapper;
 import ru.bartenev.severstal.service.PurchaseObjectService;
 
@@ -42,4 +43,17 @@ public class PurchaseObjectController {
 
         return purchaseObjectMapper.purchaseObjectToPurchaseObjectDTO(purchaseObjectService.getPurchaseObjectById(id));
     }
+
+
+    @PatchMapping(value = "/purchase-objects/{purchaseObjectId}/checked")
+    @ResponseStatus(HttpStatus.OK)
+    public PurchaseObjectDTO setPurchaseObjectCheckedById(
+            @PathVariable(value = "purchaseObjectId") Long id, @Valid @RequestBody PurchaseObjectUpdateDTO purchaseObjectUpdateDTO) {
+        PurchaseObject purchaseObject = purchaseObjectService.getPurchaseObjectById(id);
+        purchaseObjectMapper.updatePurchaseObjectFromPurchaseObjectUpdateDTO(purchaseObjectUpdateDTO, purchaseObject);
+        return purchaseObjectMapper.purchaseObjectToPurchaseObjectDTO(purchaseObjectService.savePurchaseObject(purchaseObject));
+    }
+
+
+
 }
