@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.bartenev.severstal.entity.Delivery;
 import ru.bartenev.severstal.entity.PurchaseObject;
 import ru.bartenev.severstal.exception.PurchaseObjectNotFoundException;
 import ru.bartenev.severstal.repository.PurchaseObjectRepository;
@@ -39,11 +40,15 @@ public class PurchaseObjectService {
         return purchaseObjectRepository.save(purchaseObject);
     }
 
-    public List<PurchaseObject> setPurchaseObjectsChecked(List<PurchaseObject> purchaseObjects, Boolean checked){
+    public List<PurchaseObject> setPurchaseObjectsIsReceived(List<PurchaseObject> purchaseObjects, Boolean isReceived){
         for (PurchaseObject purchaseObject : purchaseObjects){
-            purchaseObject.setIsReceived(checked);
+            purchaseObject.setIsReceived(isReceived);
         }
         return purchaseObjectRepository.saveAll(purchaseObjects);
+    }
+
+    public  List<PurchaseObject> getPurchaseObjectsByDeliveryList(List<Delivery> deliveries){
+        return purchaseObjectRepository.findByDeliveryIn(deliveries);
     }
 
     public Boolean hasPurchaseObjectsComplaints(List<PurchaseObject> purchaseObjects) {

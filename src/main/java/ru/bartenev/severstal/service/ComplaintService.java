@@ -75,6 +75,10 @@ public class ComplaintService {
     }
 
     public Complaint saveComplaint(@NonNull Complaint complaint) {
+        if (!complaint.getPurchaseObject().getIsReceived()){
+            throw new ComplaintConflictException("Нельзя добавлять реламацию к не поставленному товару. " +
+                    "Пожалуйста поставьте соответствующую отметку в спике объектов закупки.");
+        }
         checkComplaintDeliveryStatus(complaint);
         checkSumComplaintsCount(getComplaintsByPurchaseObjectId(complaint.getPurchaseObject().getId()), complaint);
 

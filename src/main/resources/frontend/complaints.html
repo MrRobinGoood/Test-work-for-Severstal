@@ -80,7 +80,7 @@ $(document).ready(function() {
                 $('#pricePerUnit').text(parseFloat(response.pricePerUnit).toFixed(3));
                 $('#totalPrice').text((parseFloat(response.productCount) * parseFloat(response.pricePerUnit)).toFixed(3));
                 $('#currencyType').text(response.currencyType.title);
-                $('#hasComplaints').text(response.hasComplaints? 'Yes' : 'No');
+                $('#hasComplaints').text(response.hasComplaints? 'Есть' : 'Нет');
                 $('#deliveryId').text(response.deliveryId);
                 deliveryId = response.deliveryId;
 

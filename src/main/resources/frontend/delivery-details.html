@@ -173,8 +173,14 @@ $(document).ready(function() {
                             console.log("Запрос успешно выполнен для объекта ID:", purchaseObjectId);
                         },
                         error: function(error) {
-                            console.error("Ошибка при обновлении состояния чекбокса для объекта ID:", purchaseObjectId, error);
-                        }
+                            if (error.responseJSON){alert("Ошибка при обновлении состояния чекбокса. " + error.responseJSON.message);}
+                                            else {
+                                                alert("Ошибка при обновлении состояния чекбокса. ");
+                                            }
+                                            location.reload();
+                                                    }
+                                                    
+                        
                     });
                 });
             },
@@ -233,7 +239,7 @@ $(document).ready(function() {
 
     $('#cancelReceiving').on('click', function() {
 
-        var result = confirm("Вы точно хотите отменить приёмку товара? Информация о полученных объектах закупки будет потеряна, а статус доставки поменяется на 'Ожидается'.");
+        var result = confirm("Вы точно хотите отменить приёмку товара? Информация о полученных объектах сохранится, но статус доставки поменяется на 'Ожидается'. Обработанные объекты закупки не будут учитываться в статистике.");
         if (!result) {
             return false;
            

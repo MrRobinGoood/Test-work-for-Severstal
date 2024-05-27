@@ -24,6 +24,11 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(PurchaseObjectConflictException.class)
+    public ResponseEntity<?> handleMessageConflictException(PurchaseObjectConflictException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(ComplaintConflictException.class)
     public ResponseEntity<?> handleMessageConflictException(ComplaintConflictException e) {
         return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.CONFLICT);

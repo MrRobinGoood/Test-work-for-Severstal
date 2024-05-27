@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import ru.bartenev.severstal.dto.*;
 
 import ru.bartenev.severstal.entity.PurchaseObject;
+import ru.bartenev.severstal.exception.PurchaseObjectConflictException;
 import ru.bartenev.severstal.mapper.PurchaseObjectMapper;
 import ru.bartenev.severstal.service.PurchaseObjectService;
 
@@ -50,6 +51,10 @@ public class PurchaseObjectController {
     public PurchaseObjectDTO setPurchaseObjectCheckedById(
             @PathVariable(value = "purchaseObjectId") Long id, @Valid @RequestBody PurchaseObjectUpdateDTO purchaseObjectUpdateDTO) {
         PurchaseObject purchaseObject = purchaseObjectService.getPurchaseObjectById(id);
+        if (!purchaseObject.getComplaints().isEmpty()) {
+            throw new PurchaseObjectConflictException("Товар с добавленными рекламациями нельзя пометить не полученным.");
+        }
+
         purchaseObjectMapper.updatePurchaseObjectFromPurchaseObjectUpdateDTO(purchaseObjectUpdateDTO, purchaseObject);
         return purchaseObjectMapper.purchaseObjectToPurchaseObjectDTO(purchaseObjectService.savePurchaseObject(purchaseObject));
     }

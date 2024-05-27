@@ -6,21 +6,29 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
-<div class="container">
-    <h2>Все доставки</h2>
-    <select id="sortColumnSelect">
-        <option value="ID">ID</option>
-        <option value="PROVIDER">Поставщик</option>
-        <option value="ADDRESS">Адрес</option>
-        <option value="DELIVERY_DATETIME">Дата и время</option>
-        <option value="STATUS">Статус</option>
-    </select>
-    <select id="sortDirectionSelect">
-        <option value="ASC">По возрастанию</option>
-        <option value="DESC">По убыванию</option>
-    </select>
-    <button id="prevPageBtn" disabled>Предыдущая страница</button>
-    <button id="nextPageBtn">Следующая страница</button>
+    <div class="container">
+        <h2>Все доставки</h2>
+        <div class="row">
+            <div class="col-md-3">
+                <select id="sortColumnSelect" class="form-control">
+                    <option value="ID">ID</option>
+                    <option value="PROVIDER">Поставщик</option>
+                    <option value="ADDRESS">Адрес</option>
+                    <option value="DELIVERY_DATETIME">Дата и время</option>
+                    <option value="STATUS">Статус</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="sortDirectionSelect" class="form-control">
+                    <option value="ASC">По возрастанию</option>
+                    <option value="DESC">По убыванию</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <a href="delivery-charts.html?id=1" class="btn btn-light">Сформировать отчет за период</a>
+            </div>
+        </div>
+    
     <table class="table table-striped" id="deliveriesTable">
         <thead>
             <tr>
@@ -30,12 +38,15 @@
                 <th>Дата и время</th>
                 <th>Статус</th>
                 <th></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
             <!-- Здесь будут динамически добавляться строки -->
         </tbody>
     </table>
+    <button id="prevPageBtn" class="btn btn-light" disabled>Предыдущая страница</button>
+    <button id="nextPageBtn" class="btn btn-light">Следующая страница</button>
 </div>
 
 <script>
@@ -59,6 +70,7 @@ $(document).ready(function() {
                     row.append('<td>' + delivery.deliveryDateTime + '</td>');
                     row.append('<td>' + delivery.status.title + '</td>');
                     row.append('<td><a href="delivery-details.html?id=' + delivery.id + '" class="btn btn-primary">Подробнее</a></td>');
+                    row.append('<td><a href="delivery-charts.html?id=' + delivery.id + '" class="btn btn-secondary">Статистика</a></td>');
                     tbody.append(row);
                 });
                 currentPage = pageNumber;
