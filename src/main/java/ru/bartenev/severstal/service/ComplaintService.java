@@ -43,9 +43,6 @@ public class ComplaintService {
         if (newComplaint.getReason().getId() == 1) {
             sumComplaintsCountWithReasonNotDelivered = newComplaint.getComplaintCount();
         }
-
-
-
         if (!complaints.isEmpty()) {
             for (Complaint complaint : complaints) {
                 if (complaint.getReason().getId() == newComplaint.getReason().getId()){

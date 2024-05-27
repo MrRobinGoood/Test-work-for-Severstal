@@ -38,6 +38,7 @@
             opacity: 1; /* Показываем галочку */
             background-color: red; /* Цвет галочки */
         }
+
     </style>
 </head>
 <body>
@@ -50,6 +51,7 @@
     <p><b>Адрес: </b><span id="addressTitle"></span></p>
     <p><b>Дата и время:</b> <span id="deliveryDateTime"></span></p>
     <p><b>Статус:</b> <span id="statusTitle"></span></p>  
+
 
     <h3>Объекты закупки</h3>
     <table class="table table-striped" id="purchaseObjectsTable">
@@ -72,8 +74,9 @@
             <!-- Здесь будут динамически добавляться строки -->
         </tbody>
     </table>
-    
-    <button id="completeDeliveryCheck" class="btn btn-primary" disabled>Завершить получение доставки</button>
+    <button id="startReceiving" class="btn btn-success">Начать приемку товара</button>
+    <button id="cancelReceiving" class="btn btn-danger" style="display:none;">Отменить приемку товара</button>
+    <button id="completeDeliveryCheck" class="btn btn-success" style="display:none;">Завершить получение доставки</button>
 </div>
 
 <script>
@@ -83,6 +86,7 @@ $(document).ready(function() {
     var addressTitle = '';
     var deliveryDateTime = '';
     var statusTitle = '';
+    var statusId = '';
 
     function loadDeliveryDetails(id) {
         $.ajax({
@@ -94,6 +98,7 @@ $(document).ready(function() {
                 addressTitle = response.address.title;
                 deliveryDateTime = response.deliveryDateTime;
                 statusTitle = response.status.title;
+                statusId = response.status.id;
                 
                 $('#deliveryId').text(response.id);
                 $('#providerName').text(providerName);
@@ -101,6 +106,14 @@ $(document).ready(function() {
                 $('#deliveryDateTime').text(deliveryDateTime);
                 $('#statusTitle').text(statusTitle);
                 
+                if (statusId === 2) {
+    $('#startReceiving').hide(); // Скрыть кнопку начала приемки
+    $('#cancelReceiving').show(); // Показать кнопку отмены приемки
+    $('#completeDeliveryCheck').show(); // Показать кнопку завершения приемки
+} else if (statusId > 2){
+    $('#startReceiving').toggleClass('btn-success btn-info'); 
+    $('#startReceiving').text('Внести изменения в приемку'); 
+}
                 loadPurchaseObjects(id);
             },
             error: function(error) {
@@ -110,47 +123,47 @@ $(document).ready(function() {
     }
 
     function loadPurchaseObjects(deliveryId) {
-        $.ajax({
-            url: 'http://localhost:8081/deliveries/' + deliveryId + '/purchase-objects?page=1&size=1000',
-            method: 'GET',
-            success: function(response) {
-                var tbody = $('#purchaseObjectsTable tbody');
-                tbody.empty();
-                response.purchaseObjects.forEach(purchaseObject => {
-                    var row = $('<tr>');
-                    row.append('<td>' + purchaseObject.id + '</td>');
-                    row.append('<td>' + purchaseObject.product.productType.title + '</td>');
-                    row.append('<td>' + purchaseObject.product.title + '</td>');
-                    row.append('<td>' + parseFloat(purchaseObject.productCount).toFixed(3) + '</td>');
-                    row.append('<td>' + purchaseObject.measureUnit.title + '</td>');
-                    row.append('<td>' + parseFloat(purchaseObject.pricePerUnit).toFixed(3) + '</td>');
-                    row.append('<td>' + (parseFloat(purchaseObject.productCount) * parseFloat(purchaseObject.pricePerUnit)).toFixed(3) + '</td>');
-                    row.append('<td>' + purchaseObject.currencyType.title + '</td>');
-                    row.append('<td>' + (purchaseObject.hasComplaints? 'Есть' : 'Нет') + '</td>');
-                    
-                    var isReceived = purchaseObject.isReceived? 'checked' : '';
-                    row.append('<td><label class="custom-checkbox" for="check-' + purchaseObject.id + '">' +
-                                '<input type="checkbox" id="check-' + purchaseObject.id + '" class="hidden-checkbox" ' + isReceived + '>' +
-                                '<span class="checkbox-indicator"></span></label></td>');
-                    
-                    row.append('<td><a href="complaints.html?id=' + purchaseObject.id + '" class="btn btn-primary">Подробнее</a></td>'); // Кнопка "View Details"
-                    
-                    tbody.append(row);
-                });
+    $.ajax({
+        url: 'http://localhost:8081/deliveries/' + deliveryId + '/purchase-objects?page=1&size=1000',
+        method: 'GET',
+        success: function(response) {
+            var tbody = $('#purchaseObjectsTable tbody');
+            tbody.empty();
+            response.purchaseObjects.forEach(purchaseObject => {
+                var row = $('<tr>');
+                row.append('<td>' + purchaseObject.id + '</td>');
+                row.append('<td>' + purchaseObject.product.productType.title + '</td>');
+                row.append('<td>' + purchaseObject.product.title + '</td>');
+                row.append('<td>' + parseFloat(purchaseObject.productCount).toFixed(3) + '</td>');
+                row.append('<td>' + purchaseObject.measureUnit.title + '</td>');
+                row.append('<td>' + parseFloat(purchaseObject.pricePerUnit).toFixed(3) + '</td>');
+                row.append('<td>' + (parseFloat(purchaseObject.productCount) * parseFloat(purchaseObject.pricePerUnit)).toFixed(3) + '</td>');
+                row.append('<td>' + purchaseObject.currencyType.title + '</td>');
+                row.append('<td>' + (purchaseObject.hasComplaints? 'Есть' : 'Нет') + '</td>');
+                
+                var isReceived = purchaseObject.isReceived? 'checked' : '';
+                var disabled = statusId!== 2? 'disabled' : '';
+                row.append('<td><label class="custom-checkbox" for="check-' + purchaseObject.id + '">' +
+                            '<input type="checkbox" id="check-' + purchaseObject.id + '" class="hidden-checkbox" ' + isReceived + ' ' + disabled + '>' +
+                            '<span class="checkbox-indicator"></span></label></td>');
+                
+                row.append('<td><a href="complaints.html?id=' + purchaseObject.id + '" class="btn btn-primary">Подробнее</a></td>'); // Кнопка "View Details"
+                
+                tbody.append(row);
+            });
 
                 $('.custom-checkbox input[type="checkbox"]').on('change', function() {
+
                     var $checkbox = $(this);
+                    
+
+                    
                     var purchaseObjectId = $checkbox.attr('id').replace('check-', '');
+
+                
+                                       
                     var requestBody = $checkbox.is(':checked')? '{"isReceived": true}' : '{"isReceived": false}';
                     
-                    var completeButton = $('#completeDeliveryCheck');
-
-                    if (allChecked()) {
-                        completeButton.prop('disabled', false);
-                    } else {
-                        completeButton.prop('disabled', true);
-                    }
-
                     $.ajax({
                         url: 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/receiving',
                         method: 'PATCH',
@@ -171,8 +184,6 @@ $(document).ready(function() {
         });
     }
 
-   
-
     var urlParams = new URLSearchParams(window.location.search);
     var deliveryIdFromUrl = urlParams.get('id');
     if (deliveryIdFromUrl) {
@@ -180,47 +191,85 @@ $(document).ready(function() {
     } else {
         console.log("ID не указан");
     }
-
+ 
     $('#backToDeliveries').on('click', function() {
         window.location.href = 'index.html';
     });
 
-     // Создаем экземпляр MutationObserver
-     var observer = new MutationObserver(function(mutations) {
-        mutations.forEach(function(mutation) {
-            // Проверяем, было ли добавлено новое содержимое
-            if (mutation.addedNodes.length > 0) {
-                // Проверяем, все ли чекбоксы теперь выбраны
-                if (allChecked()) {
-                    $('#completeDeliveryCheck').prop('disabled', false);
-                } else {
-                    $('#completeDeliveryCheck').prop('disabled', true);
-                }
-            }
-        });
+    $('#startReceiving').on('click', function() {
+
+    var requestBody = JSON.stringify({ "command": "START" });
+
+        // Проверяем, является ли статус доставки ожидаемым
+        if (statusId!== 1) {
+        var result = confirm("Приёмка товара для данной доставки уже завершена, вы точно хотите возобновить приёмку?");
+        if (!result) {
+            return false;
+           
+
+
+
+        }
+        }
+
+        $.ajax({
+        url: 'http://localhost:8081/deliveries/' + deliveryId + '/receiving',
+        method: 'POST',
+        contentType: 'application/json',
+        data: requestBody,
+        success: function(response) {
+            console.log("Приемка товара начата.");
+            $('#startReceiving').hide(); // Скрыть кнопку начала приемки
+            $('#cancelReceiving').show(); // Показать кнопку отмены приемки
+            location.reload();
+        },
+        error: function(error) {
+            console.error("Ошибка при начале приемки товара:", error);
+        }
+            });
+
+            
     });
 
-    // Настройки наблюдателя
-    var config = { childList: true, subtree: true };
+    $('#cancelReceiving').on('click', function() {
 
-    // Начинаем наблюдение за всеми дочерними узлами body
-    observer.observe(document.body, config);
+        var result = confirm("Вы точно хотите отменить приёмку товара? Информация о полученных объектах закупки будет потеряна, а статус доставки поменяется на 'Ожидается'.");
+        if (!result) {
+            return false;
+           
 
-    // Функция для проверки всех чекбоксов
-    function allChecked() {
-        return $('.custom-checkbox input[type="checkbox"]:checked').length === $('.custom-checkbox input[type="checkbox"]').length;
-    }
 
-    // Инициализация состояния кнопки при загрузке страницы
-    if (allChecked()) {
-        $('#completeDeliveryCheck').prop('disabled', false);
-    } else {
-        $('#completeDeliveryCheck').prop('disabled', true);
-    }
+
+        }
+
+        var requestBody = JSON.stringify({ "command": "CANCEL" });
+
+        $.ajax({
+            url: 'http://localhost:8081/deliveries/' + deliveryId + '/receiving',
+            method: 'POST',
+            contentType: 'application/json',
+            data: requestBody,
+            success: function(response) {
+                console.log("Приемка товара отменена.");
+                $('#cancelReceiving').hide(); // Скрыть кнопку отмены приемки
+                $('#startReceiving').show(); // Показать кнопку начала приемки
+                location.reload();
+            },
+            error: function(error) {
+                if (error.responseJSON){alert("Ошибка при отмене приемки товара. " + error.responseJSON.message);}
+                else {
+                    alert("Ошибка при отмене приемки товара. ");
+                }
+                
+            }
+        });
+
+       
+    });
 
     $('#completeDeliveryCheck').on('click', function() {
-        var deliveryId = $('#deliveryId').text();
 
+        var deliveryId = $('#deliveryId').text();
         $.ajax({
             url: 'http://localhost:8081/deliveries/' + deliveryId,
             method: 'POST',

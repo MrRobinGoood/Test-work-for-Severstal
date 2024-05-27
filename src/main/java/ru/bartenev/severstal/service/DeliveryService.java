@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import ru.bartenev.severstal.entity.Complaint;
 import ru.bartenev.severstal.entity.Delivery;
 import ru.bartenev.severstal.entity.PurchaseObject;
-import ru.bartenev.severstal.enums.DeliverySortingFields;
+import ru.bartenev.severstal.enums.DeliverySortingField;
 import ru.bartenev.severstal.enums.SortingDirection;
 import ru.bartenev.severstal.exception.DeliveryConflictException;
 import ru.bartenev.severstal.exception.DeliveryNotFoundException;
@@ -32,7 +32,7 @@ public class DeliveryService {
         this.deliveryStatusService = deliveryStatusService;
     }
 
-    public Page<Delivery> getDeliveriesPage(Integer pageNum, Integer pageSize, DeliverySortingFields sortBy, SortingDirection sortDirection) {
+    public Page<Delivery> getDeliveriesPage(Integer pageNum, Integer pageSize, DeliverySortingField sortBy, SortingDirection sortDirection) {
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Direction.fromString(sortDirection.getTitle()), sortBy.getTitle()));
         return deliveryRepository.findAll(pageable);
     }
@@ -56,7 +56,7 @@ public class DeliveryService {
         Delivery delivery = getDeliveryById(id);
         List<PurchaseObject> purchaseObjects = purchaseObjectService.getPurchaseObjectsByDeliveryId(id);
         if (purchaseObjectService.hasPurchaseObjectsComplaints(purchaseObjects)){
-            throw new DeliveryConflictException("Can not cancel receiving delivery which has complaints.");
+            throw new DeliveryConflictException("Нельзя отменить приёмку товара, для которого уже созданы рекламации.");
         }
         purchaseObjectService.setPurchaseObjectsChecked(purchaseObjects, Boolean.FALSE);
         delivery.setStatus(deliveryStatusService.getDeliveryStatusById(1L));
@@ -67,7 +67,7 @@ public class DeliveryService {
         return deliveryRepository.findAllByDeliveryDateTimeBetween(dateStart,dateEnd);
     }
 
-    public Delivery completeDeliveryReceivingById(Long id) {
+    public Delivery finishDeliveryReceivingById(Long id) {
         Delivery delivery = getDeliveryById(id);
 
 

@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum DeliverySortingFields {
+public enum DeliverySortingField {
     ID("id"),
     PROVIDER("provider"),
     ADDRESS("address"),
