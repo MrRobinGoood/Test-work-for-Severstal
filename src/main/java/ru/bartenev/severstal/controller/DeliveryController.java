@@ -41,6 +41,6 @@ public class DeliveryController {
     @ResponseStatus(HttpStatus.OK)
     @PostMapping(value = "/{deliveryId}")
     public Delivery completeDeliveryById(@PathVariable(value = "deliveryId") Long id) {
-        return deliveryService.completeDeliveryById(id);
+        return deliveryService.completeDeliveryReceivingById(id);
     }
 }

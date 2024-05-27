@@ -19,6 +19,6 @@ public class PurchaseObjectDTO {
     private BigDecimal pricePerAllCount;
     private CurrencyType currencyType;
     private Boolean hasComplaints;
-    private Boolean checked;
+    private Boolean isReceived;
     private Long deliveryId;
 }

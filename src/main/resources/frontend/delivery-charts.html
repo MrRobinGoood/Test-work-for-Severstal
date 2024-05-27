@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Круговая Диаграмма с Chart.js</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+       .container {
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        canvas {
+            max-width: 80%;
+            max-height: 60%;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>Отчет о качестве товаров</h1>
+        <canvas id="qualityReportPieChart"></canvas>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var ctx = document.getElementById('qualityReportPieChart').getContext('2d');
+            var qualityReportPieChart = new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['Количество брака', 'Количество непоставленного товара', 'Количество качественного товара'],
+                    datasets: [{
+                        data: [10, 5, 30],
+                        backgroundColor: ['#ff6384', '#36a2eb', '#ffc107'],
+                        borderWidth: 1,
+                        borderColor: ['#ff6384', '#36a2eb', '#ffc107'],
+                        hoverOffset: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'right'
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

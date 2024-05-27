@@ -1,35 +1,35 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>All Deliveries</title>
+    <title>Все доставки</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 </head>
 <body>
 <div class="container">
-    <h2>All Deliveries</h2>
+    <h2>Все доставки</h2>
     <select id="sortColumnSelect">
         <option value="ID">ID</option>
-        <option value="PROVIDER">Provider</option>
-        <option value="ADDRESS">Address</option>
-        <option value="DELIVERY_DATETIME">Delivery DateTime</option>
-        <option value="STATUS">Status</option>
+        <option value="PROVIDER">Поставщик</option>
+        <option value="ADDRESS">Адрес</option>
+        <option value="DELIVERY_DATETIME">Дата и время</option>
+        <option value="STATUS">Статус</option>
     </select>
     <select id="sortDirectionSelect">
-        <option value="ASC">Ascending</option>
-        <option value="DESC">Descending</option>
+        <option value="ASC">По возрастанию</option>
+        <option value="DESC">По убыванию</option>
     </select>
-    <button id="prevPageBtn" disabled>Previous Page</button>
-    <button id="nextPageBtn">Next Page</button>
+    <button id="prevPageBtn" disabled>Предыдущая страница</button>
+    <button id="nextPageBtn">Следующая страница</button>
     <table class="table table-striped" id="deliveriesTable">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Provider</th>
-                <th>Address</th>
-                <th>Delivery DateTime</th>
-                <th>Status</th>
-                <th>Action</th>
+                <th>Поставщик</th>
+                <th>Адрес</th>
+                <th>Дата и время</th>
+                <th>Статус</th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -58,7 +58,7 @@ $(document).ready(function() {
                     row.append('<td>' + delivery.address.title + '</td>');
                     row.append('<td>' + delivery.deliveryDateTime + '</td>');
                     row.append('<td>' + delivery.status.title + '</td>');
-                    row.append('<td><a href="delivery-details.html?id=' + delivery.id + '" class="btn btn-primary">View Details</a></td>');
+                    row.append('<td><a href="delivery-details.html?id=' + delivery.id + '" class="btn btn-primary">Подробнее</a></td>');
                     tbody.append(row);
                 });
                 currentPage = pageNumber;

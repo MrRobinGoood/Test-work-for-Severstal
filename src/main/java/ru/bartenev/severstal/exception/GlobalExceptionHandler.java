@@ -24,6 +24,16 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(ComplaintConflictException.class)
+    public ResponseEntity<?> handleMessageConflictException(ComplaintConflictException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(DeliveryConflictException.class)
+    public ResponseEntity<?> handleMessageConflictException(DeliveryConflictException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<?> handleMethodArgumentNotValidException(MethodArgumentNotValidException e) {
         return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.BAD_REQUEST);

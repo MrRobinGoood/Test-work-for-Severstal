@@ -8,12 +8,16 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.bartenev.severstal.entity.Complaint;
+import ru.bartenev.severstal.entity.Reason;
+import ru.bartenev.severstal.exception.ComplaintConflictException;
 import ru.bartenev.severstal.exception.ComplaintNotFoundException;
 import ru.bartenev.severstal.exception.InvalidParametersException;
 import ru.bartenev.severstal.repository.ComplaintRepository;
 
 import java.math.BigDecimal;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @Service
 public class ComplaintService {
@@ -33,27 +37,49 @@ public class ComplaintService {
         return complaintRepository.findByPurchaseObject_id(purchaseObjectId);
     }
 
-    public void checkSumComplaintsCount(@NonNull List<Complaint> complaints, BigDecimal complaintCount, BigDecimal productCount) {
-        BigDecimal sumAllComplaintsCount = complaintCount;
-
-        if (!complaints.isEmpty()) {
-            sumAllComplaintsCount = complaints
-                    .stream()
-                    .map(Complaint::getComplaintCount)
-                    .reduce(complaintCount, BigDecimal::add);
+    public void checkSumComplaintsCount(@NonNull List<Complaint> complaints, Complaint newComplaint) {
+        BigDecimal sumAllComplaintsCount = newComplaint.getComplaintCount();
+        BigDecimal sumComplaintsCountWithReasonNotDelivered = new BigDecimal(0);
+        if (newComplaint.getReason().getId() == 1) {
+            sumComplaintsCountWithReasonNotDelivered = newComplaint.getComplaintCount();
         }
 
-        if (sumAllComplaintsCount.compareTo(productCount) > 0) {
-            throw new InvalidParametersException("Count of all complaints can not be more than count of all products.");
+
+
+        if (!complaints.isEmpty()) {
+            for (Complaint complaint : complaints) {
+                if (complaint.getReason().getId() == newComplaint.getReason().getId()){
+                    throw new InvalidParametersException("Рекламация с данной причиной уже создана. Пожалуйста измените количество уже существующей рекламации.");
+                }
+                if (complaint.getReason().getId() == 1L && newComplaint.getReason().getId() == 1) {
+                    sumComplaintsCountWithReasonNotDelivered = sumComplaintsCountWithReasonNotDelivered.add(complaint.getComplaintCount());
+                }
+                sumAllComplaintsCount = sumAllComplaintsCount.add(complaint.getComplaintCount());
+            }
+        }
+
+        if (sumAllComplaintsCount.compareTo(newComplaint.getPurchaseObject().getProductCount()) > 0) {
+            throw new InvalidParametersException("Количество всех рекламаций не может превышать общее количество товаров.");
+        }
+
+        if (sumComplaintsCountWithReasonNotDelivered.compareTo(newComplaint.getPurchaseObject().getProductCount()) == 0) {
+            throw new InvalidParametersException("Количество рекламации со статусом 'Не поставлено' не может составлять 100% продукта. " +
+                    "Если весь товар не поставлен, пожалуйста укажите это в списке объектов закупки.");
+        }
+    }
+
+    public void checkComplaintDeliveryStatus(Complaint complaint) {
+        if (complaint.getPurchaseObject().getDelivery().getStatus().getId() == 1) {
+            throw new ComplaintConflictException("Процедура приёмки доставки еще не начата.");
+        }
+        if (complaint.getPurchaseObject().getDelivery().getStatus().getId() > 2) {
+            throw new ComplaintConflictException("Текущая доставка уже завершена.");
         }
     }
 
     public Complaint saveComplaint(@NonNull Complaint complaint) {
-
-        checkSumComplaintsCount(
-                getComplaintsByPurchaseObjectId(complaint.getPurchaseObject().getId()),
-                complaint.getComplaintCount(),
-                complaint.getPurchaseObject().getProductCount());
+        checkComplaintDeliveryStatus(complaint);
+        checkSumComplaintsCount(getComplaintsByPurchaseObjectId(complaint.getPurchaseObject().getId()), complaint);
 
         return complaintRepository.save(complaint);
 
@@ -64,17 +90,15 @@ public class ComplaintService {
     }
 
     public void deleteComplaintById(Long id) {
-        getComplaintById(id);
+        checkComplaintDeliveryStatus(getComplaintById(id));
         complaintRepository.deleteById(id);
     }
 
     public Complaint updateComplaint(Complaint newComplaint) {
+        checkComplaintDeliveryStatus(newComplaint);
         List<Complaint> complaints = getComplaintsByPurchaseObjectId(newComplaint.getPurchaseObject().getId());
         complaints.remove(newComplaint);
-        checkSumComplaintsCount(
-                complaints,
-                newComplaint.getComplaintCount(),
-                newComplaint.getPurchaseObject().getProductCount());
+        checkSumComplaintsCount(complaints, newComplaint);
 
         return complaintRepository.save(newComplaint);
     }

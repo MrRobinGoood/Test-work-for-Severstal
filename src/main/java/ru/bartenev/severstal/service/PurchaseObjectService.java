@@ -39,4 +39,29 @@ public class PurchaseObjectService {
         return purchaseObjectRepository.save(purchaseObject);
     }
 
+    public List<PurchaseObject> setPurchaseObjectsChecked(List<PurchaseObject> purchaseObjects, Boolean checked){
+        for (PurchaseObject purchaseObject : purchaseObjects){
+            purchaseObject.setIsReceived(checked);
+        }
+        return purchaseObjectRepository.saveAll(purchaseObjects);
+    }
+
+    public Boolean hasPurchaseObjectsComplaints(List<PurchaseObject> purchaseObjects) {
+        for (PurchaseObject purchaseObject : purchaseObjects) {
+            if (!purchaseObject.getComplaints().isEmpty()) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
+    public Boolean getInfoPurchaseObjectsDTO(List<PurchaseObject> purchaseObjects) {
+        for (PurchaseObject purchaseObject : purchaseObjects) {
+            if (!purchaseObject.getComplaints().isEmpty()) {
+                return Boolean.TRUE;
+            }
+        }
+        return Boolean.FALSE;
+    }
+
 }

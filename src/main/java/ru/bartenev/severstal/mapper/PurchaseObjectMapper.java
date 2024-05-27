@@ -14,7 +14,7 @@ public interface PurchaseObjectMapper {
 
     @Mapping(target = "pricePerAllCount", expression = "java(purchaseObject.getPricePerUnit().multiply(purchaseObject.getProductCount()))")
     @Mapping(target = "hasComplaints", expression = "java(!purchaseObject.getComplaints().isEmpty())")
-    @Mapping(target = "checked", source = "checked")
+    @Mapping(target = "isReceived", source = "isReceived")
     @Mapping(target = "deliveryId", source = "delivery.id")
     PurchaseObjectDTO purchaseObjectToPurchaseObjectDTO (PurchaseObject purchaseObject);
 
@@ -27,7 +27,7 @@ public interface PurchaseObjectMapper {
     @Mapping(target = "purchaseObjects", source = "purchaseObjects.content")
     PaginatedPurchaseObjectsDTO purchaseObjectsPageToPaginatedPurchaseObjectsDTO(Page<PurchaseObject> purchaseObjects);
 
-    @Mapping(target = "checked", source = "checked")
+    @Mapping(target = "isReceived", source = "isReceived")
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     void updatePurchaseObjectFromPurchaseObjectUpdateDTO(PurchaseObjectUpdateDTO purchaseObjectUpdateDTO, @MappingTarget PurchaseObject purchaseObject);
 }

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-    <title>Delivery Details</title>
+    <title>Доставка</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <style>
@@ -42,30 +42,30 @@
 </head>
 <body>
 <div class="container">
-    <button id="backToDeliveries" class="btn btn-secondary">Back to Deliveries</button>
+    <button id="backToDeliveries" class="btn btn-secondary">Назад ко всем доставкам</button>
 
-    <h2>Delivery Details</h2>
-    <p>ID: <span id="deliveryId"></span></p>
-    <p>Provider: <span id="providerName"></span></p>
-    <p>Address: <span id="addressTitle"></span></p>
-    <p>Delivery DateTime: <span id="deliveryDateTime"></span></p>
-    <p>Status: <span id="statusTitle"></span></p>  
+    <h2>Доставка</h2>
+    <p><b>ID:</b> <span id="deliveryId"></span></p>
+    <p><b>Поставщик:</b> <span id="providerName"></span></p>
+    <p><b>Адрес: </b><span id="addressTitle"></span></p>
+    <p><b>Дата и время:</b> <span id="deliveryDateTime"></span></p>
+    <p><b>Статус:</b> <span id="statusTitle"></span></p>  
 
-    <h3>Purchase Objects</h3>
+    <h3>Объекты закупки</h3>
     <table class="table table-striped" id="purchaseObjectsTable">
         <thead>
             <tr>
                 <th>ID</th>
-                <th>Product Type</th>
-                <th>Product Title</th>
-                <th>Product Count</th>
-                <th>Measure Unit</th>
-                <th>Price per Unit</th>
-                <th>Total Price</th>
-                <th>Currency Type</th>
-                <th>Has Complaints</th>
-                <th>All Checked</th>
-                <th>Action</th> <!-- Новый столбец -->
+                <th>Тип продукта</th>
+                <th>Название продукта</th>
+                <th>Количество</th>
+                <th>Единицы измерения</th>
+                <th>Цена за единицу</th>
+                <th>Общая стоимость</th>
+                <th>Тип валюты</th>
+                <th>Рекламации</th>
+                <th>Получено</th>
+                <th></th> 
             </tr>
         </thead>
         <tbody>
@@ -73,7 +73,7 @@
         </tbody>
     </table>
     
-    <button id="completeDeliveryCheck" class="btn btn-primary" disabled>Complete delivery check</button>
+    <button id="completeDeliveryCheck" class="btn btn-primary" disabled>Завершить получение доставки</button>
 </div>
 
 <script>
@@ -126,14 +126,14 @@ $(document).ready(function() {
                     row.append('<td>' + parseFloat(purchaseObject.pricePerUnit).toFixed(3) + '</td>');
                     row.append('<td>' + (parseFloat(purchaseObject.productCount) * parseFloat(purchaseObject.pricePerUnit)).toFixed(3) + '</td>');
                     row.append('<td>' + purchaseObject.currencyType.title + '</td>');
-                    row.append('<td>' + (purchaseObject.hasComplaints? 'Yes' : 'No') + '</td>');
+                    row.append('<td>' + (purchaseObject.hasComplaints? 'Есть' : 'Нет') + '</td>');
                     
-                    var isChecked = purchaseObject.checked? 'checked' : '';
+                    var isReceived = purchaseObject.isReceived? 'checked' : '';
                     row.append('<td><label class="custom-checkbox" for="check-' + purchaseObject.id + '">' +
-                                '<input type="checkbox" id="check-' + purchaseObject.id + '" class="hidden-checkbox" ' + isChecked + '>' +
+                                '<input type="checkbox" id="check-' + purchaseObject.id + '" class="hidden-checkbox" ' + isReceived + '>' +
                                 '<span class="checkbox-indicator"></span></label></td>');
                     
-                    row.append('<td><a href="complaints.html?id=' + purchaseObject.id + '" class="btn btn-primary">View Details</a></td>'); // Кнопка "View Details"
+                    row.append('<td><a href="complaints.html?id=' + purchaseObject.id + '" class="btn btn-primary">Подробнее</a></td>'); // Кнопка "View Details"
                     
                     tbody.append(row);
                 });
@@ -141,7 +141,7 @@ $(document).ready(function() {
                 $('.custom-checkbox input[type="checkbox"]').on('change', function() {
                     var $checkbox = $(this);
                     var purchaseObjectId = $checkbox.attr('id').replace('check-', '');
-                    var requestBody = $checkbox.is(':checked')? '{"checked": true}' : '{"checked": false}';
+                    var requestBody = $checkbox.is(':checked')? '{"isReceived": true}' : '{"isReceived": false}';
                     
                     var completeButton = $('#completeDeliveryCheck');
 
@@ -152,7 +152,7 @@ $(document).ready(function() {
                     }
 
                     $.ajax({
-                        url: 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/checked',
+                        url: 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/receiving',
                         method: 'PATCH',
                         contentType: 'application/json',
                         data: requestBody,

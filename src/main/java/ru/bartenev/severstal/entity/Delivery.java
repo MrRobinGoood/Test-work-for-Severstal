@@ -32,6 +32,9 @@ public class Delivery {
     @Column(name = "delivery_datetime", nullable = false)
     private LocalDateTime deliveryDateTime;
 
+    @Column(name = "received_datetime")
+    private LocalDateTime receivedDateTime;
+
     @ManyToOne
     @JoinColumn(name = "status", referencedColumnName = "id", nullable = false)
     private DeliveryStatus status;

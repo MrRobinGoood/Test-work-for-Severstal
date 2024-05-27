@@ -45,7 +45,7 @@ public class PurchaseObjectController {
     }
 
 
-    @PatchMapping(value = "/purchase-objects/{purchaseObjectId}/checked")
+    @PatchMapping(value = "/purchase-objects/{purchaseObjectId}/receiving")
     @ResponseStatus(HttpStatus.OK)
     public PurchaseObjectDTO setPurchaseObjectCheckedById(
             @PathVariable(value = "purchaseObjectId") Long id, @Valid @RequestBody PurchaseObjectUpdateDTO purchaseObjectUpdateDTO) {

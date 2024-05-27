@@ -44,8 +44,8 @@ public class PurchaseObject {
     @JoinColumn(name = "currency_type", referencedColumnName = "id", nullable = false)
     private CurrencyType currencyType;
 
-    @Column(name = "checked", nullable = false)
-    private Boolean checked;
+    @Column(name = "is_received", nullable = false)
+    private Boolean isReceived;
 
     @OneToMany(mappedBy = "purchaseObject", fetch = FetchType.LAZY)
     private List<Complaint> complaints;

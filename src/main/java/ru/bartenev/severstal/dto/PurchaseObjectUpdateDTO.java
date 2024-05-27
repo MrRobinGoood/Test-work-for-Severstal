@@ -12,5 +12,5 @@ import lombok.Setter;
 @RequiredArgsConstructor
 public class PurchaseObjectUpdateDTO {
     @NotNull
-    private Boolean checked;
+    private Boolean isReceived;
 }
