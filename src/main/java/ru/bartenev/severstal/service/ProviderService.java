@@ -3,6 +3,7 @@ package ru.bartenev.severstal.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.bartenev.severstal.entity.Provider;
+import ru.bartenev.severstal.exception.ProviderNotFoundException;
 import ru.bartenev.severstal.repository.ProviderRepository;
 
 import java.util.List;
@@ -18,5 +19,9 @@ public class ProviderService {
 
     public List<Provider> getAllProviders(){
         return providerRepository.findAll();
+    }
+
+    public Provider getProviderById(Long id) {
+        return providerRepository.findById(id).orElseThrow(()->new ProviderNotFoundException("Provider not found."));
     }
 }

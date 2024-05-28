@@ -14,6 +14,26 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(DeliveryNotFoundException.class)
+    public ResponseEntity<?> handleDeliveryNotFound(DeliveryNotFoundException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(DeliveryStatusNotFoundException.class)
+    public ResponseEntity<?> handleDeliveryStatusNotFound(DeliveryStatusNotFoundException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(ProviderNotFoundException.class)
+    public ResponseEntity<?> handleProviderNotFound(ProviderNotFoundException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(AddressNotFoundException.class)
+    public ResponseEntity<?> handleAddressNotFound(AddressNotFoundException e) {
+        return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.NOT_FOUND);
+    }
+
     @ExceptionHandler(PurchaseObjectNotFoundException.class)
     public ResponseEntity<?> handlePurchaseObjectNotFound(PurchaseObjectNotFoundException e) {
         return new ResponseEntity<>(new AppError(e.getMessage()), HttpStatus.NOT_FOUND);

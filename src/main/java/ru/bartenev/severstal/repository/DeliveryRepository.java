@@ -20,4 +20,5 @@ public interface DeliveryRepository extends JpaRepository<Delivery,Long> {
     List<Delivery> findAllByDeliveryDateTimeBetweenAndProvider_idInAndStatus_titleContains(LocalDateTime startDateTime, LocalDateTime endDateTime, List<Long> providerIdList, String status);
     List<Delivery> findAllByDeliveryDateTimeBetweenAndAddress_idInAndStatus_titleContains(LocalDateTime startDateTime, LocalDateTime endDateTime, List<Long> addressIdList, String status);
     List<Delivery> findAllByDeliveryDateTimeBetweenAndStatus_titleContains(LocalDateTime startDateTime, LocalDateTime endDateTime, String status);
+    Page<Delivery> findAllByDeliveryDateTimeBetweenAndProvider_titleContainsAndAddress_titleContainsAndStatus_titleContains(Pageable pageable,LocalDateTime startDate, LocalDateTime endDate, String providerTitle, String addressTitle, String statusTitle);
 }

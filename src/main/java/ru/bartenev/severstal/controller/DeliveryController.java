@@ -15,11 +15,10 @@ import ru.bartenev.severstal.enums.DeliverySortingField;
 import ru.bartenev.severstal.enums.SortingDirection;
 import ru.bartenev.severstal.exception.InvalidParametersException;
 import ru.bartenev.severstal.mapper.DeliveryMapper;
-import ru.bartenev.severstal.service.DeliveryService;
-import ru.bartenev.severstal.service.PurchaseObjectService;
+import ru.bartenev.severstal.service.*;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Set;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -29,21 +28,41 @@ public class DeliveryController {
     private DeliveryService deliveryService;
     private DeliveryMapper deliveryMapper;
     private PurchaseObjectService purchaseObjectService;
+    private ProviderService providerService;
+    private AddressService addressService;
+    private DeliveryStatusService deliveryStatusService;
 
     @Autowired
-    public DeliveryController(DeliveryService deliveryService, DeliveryMapper deliveryMapper, PurchaseObjectService purchaseObjectService) {
+    public DeliveryController(DeliveryService deliveryService, DeliveryMapper deliveryMapper, PurchaseObjectService purchaseObjectService, ProviderService providerService, AddressService addressService, DeliveryStatusService deliveryStatusService) {
         this.deliveryService = deliveryService;
         this.deliveryMapper = deliveryMapper;
         this.purchaseObjectService = purchaseObjectService;
+        this.providerService = providerService;
+        this.addressService = addressService;
+        this.deliveryStatusService = deliveryStatusService;
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping()
     public PaginatedDeliveriesDTO getPaginatedDeliveries(@RequestParam(defaultValue = "1", name = "page") Integer pageNum,
                                                          @RequestParam(defaultValue = "10", name = "size") Integer pageSize,
+                                                         @RequestParam(defaultValue = "0", name = "providerId") Long providerId,
+                                                         @RequestParam(defaultValue = "0", name = "addressId") Long addressId,
+                                                         @RequestParam(defaultValue = "0", name = "statusId") Long statusId,
                                                          @RequestParam(defaultValue = "ID", name = "sortBy") String sortBy,
-                                                         @RequestParam(defaultValue = "DESC", name = "sortDirection") String sortDirection) {
-        return deliveryMapper.deliveriesPageToPaginatedDeliveryDTO(deliveryService.getDeliveriesPage(pageNum, pageSize, DeliverySortingField.valueOf(sortBy), SortingDirection.valueOf(sortDirection)));
+                                                         @RequestParam(defaultValue = "DESC", name = "sortDirection") String sortDirection,
+                                                         @RequestParam(defaultValue = "1900-01-01", name = "startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                                         @RequestParam(defaultValue = "3000-01-01", name = "endDate")@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        String providerTitle = "";
+        String addressTitle = "";
+        String statusTitle = "";
+        if (providerId.compareTo(0L) > 0) {providerTitle = providerService.getProviderById(providerId).getTitle();}
+        if (addressId.compareTo(0L) > 0) {addressTitle = addressService.getAddressById(addressId).getTitle();}
+        if (statusId.compareTo(0L) > 0) {statusTitle =deliveryStatusService.getDeliveryStatusById(statusId).getTitle();}
+        LocalDateTime dateTimeStart = startDate.atStartOfDay();
+        LocalDateTime dateTimeEnd = endDate.plusDays(1).atStartOfDay();
+
+        return deliveryMapper.deliveriesPageToPaginatedDeliveryDTO(deliveryService.getDeliveriesPage(pageNum, pageSize, DeliverySortingField.valueOf(sortBy), SortingDirection.valueOf(sortDirection),providerTitle,addressTitle,statusTitle, dateTimeStart, dateTimeEnd));
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -80,13 +99,25 @@ public class DeliveryController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping(value = "/report")
-    public InfoDTO getReportDaysDTO(@RequestParam(defaultValue = "01.01.1900", name = "dateStart") @DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate dateStart,
-                                    @RequestParam(defaultValue = "01.01.3000", name = "dateEnd")@DateTimeFormat(pattern = "dd.MM.yyyy") LocalDate dateEnd,
-                                    @RequestParam(defaultValue = "", name = "providerIdList") Set<Long> providerIdList,
-                                    @RequestParam(defaultValue = "", name = "addressIdList") Set<Long> addressIdList,
-                                    @RequestParam(defaultValue = "", name = "statusTitle") String statusTitle) {
+    public DeliveryReportDTO getReportDaysDTO(@RequestParam(defaultValue = "1", name = "page") Integer pageNum,
+                                    @RequestParam(defaultValue = "10", name = "size") Integer pageSize,
+                                    @RequestParam(defaultValue = "0", name = "providerId") Long providerId,
+                                    @RequestParam(defaultValue = "0", name = "addressId") Long addressId,
+                                    @RequestParam(defaultValue = "0", name = "statusId") Long statusId,
+                                    @RequestParam(defaultValue = "ID", name = "sortBy") String sortBy,
+                                    @RequestParam(defaultValue = "DESC", name = "sortDirection") String sortDirection,
+                                    @RequestParam(defaultValue = "1900-01-01", name = "startDate") @DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate startDate,
+                                    @RequestParam(defaultValue = "3000-01-01", name = "endDate")@DateTimeFormat(pattern = "yyyy-MM-dd") LocalDate endDate) {
+        String providerTitle = "";
+        String addressTitle = "";
+        String statusTitle = "";
+        if (providerId.compareTo(0L) > 0) {providerTitle = providerService.getProviderById(providerId).getTitle();}
+        if (addressId.compareTo(0L) > 0) {addressTitle = addressService.getAddressById(addressId).getTitle();}
+        if (statusId.compareTo(0L) > 0) {statusTitle =deliveryStatusService.getDeliveryStatusById(statusId).getTitle();}
+        LocalDateTime dateTimeStart = startDate.atStartOfDay();
+        LocalDateTime dateTimeEnd = endDate.plusDays(1).atStartOfDay();
 
-        return deliveryService.getInfoBySomeFilters(dateStart,dateEnd,providerIdList.stream().toList(),addressIdList.stream().toList(),statusTitle);
+        return deliveryService.getDeliveryReportDTO(purchaseObjectService.getPurchaseObjectsByDeliveryList(deliveryService.getDeliveriesPage(pageNum, pageSize, DeliverySortingField.valueOf(sortBy), SortingDirection.valueOf(sortDirection),providerTitle,addressTitle,statusTitle, dateTimeStart, dateTimeEnd).getContent()));
     }
 
 

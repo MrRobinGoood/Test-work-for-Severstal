@@ -175,14 +175,30 @@
         
         }
 
-        var urlParams = new URLSearchParams(window.location.search);
-    var deliveryIdFromUrl = urlParams.get('id');
-    if (deliveryIdFromUrl) {
-        loadCharts(deliveryIdFromUrl);
-    } else {
-        console.log("ID не указан");
-    }
+        function startFullReport(urlParams = null) {
+    console.log(urlParams);
+            $.ajax({
+        url: 'http://localhost:8081/deliveries/report?' + urlParams,
+        method: 'GET',
+        success: function(data) {
+                    // Обновляем данные диаграммы
+                
+                    updatePieChartData(data);
+                    updatePieChartData2(data);
+                    updatePieChartData3(data);
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Ошибка при получении данных:", textStatus, errorThrown);
+                }
+    });
 
+
+}
+
+        var urlParams = new URLSearchParams(window.location.search);
+   
+        startFullReport(urlParams);
+    
     $('#backToDeliveries').on('click', function() {
         window.location.href = 'index.html';
     });

@@ -39,9 +39,9 @@ public class DeliveryService {
         this.deliveryStatusService = deliveryStatusService;
     }
 
-    public Page<Delivery> getDeliveriesPage(Integer pageNum, Integer pageSize, DeliverySortingField sortBy, SortingDirection sortDirection) {
+    public Page<Delivery> getDeliveriesPage(Integer pageNum, Integer pageSize, DeliverySortingField sortBy, SortingDirection sortDirection, String providerTitle, String addressTitle, String statusTitle, LocalDateTime startDate, LocalDateTime endDate) {
         Pageable pageable = PageRequest.of(pageNum - 1, pageSize, Sort.by(Sort.Direction.fromString(sortDirection.getTitle()), sortBy.getTitle()));
-        return deliveryRepository.findAll(pageable);
+        return deliveryRepository.findAllByDeliveryDateTimeBetweenAndProvider_titleContainsAndAddress_titleContainsAndStatus_titleContains(pageable, startDate, endDate, providerTitle, addressTitle, statusTitle);
     }
 
     public Delivery getDeliveryById(Long id) {
@@ -62,30 +62,30 @@ public class DeliveryService {
     public Delivery cancelDeliveryReceivingById(Long id) {
         Delivery delivery = getDeliveryById(id);
         List<PurchaseObject> purchaseObjects = purchaseObjectService.getPurchaseObjectsByDeliveryId(id);
-        if (purchaseObjectService.hasPurchaseObjectsComplaints(purchaseObjects)){
+        if (purchaseObjectService.hasPurchaseObjectsComplaints(purchaseObjects)) {
             throw new DeliveryConflictException("Нельзя отменить приёмку товара, для которого уже созданы рекламации.");
         }
-//        purchaseObjectService.setPurchaseObjectsIsReceived(purchaseObjects, Boolean.FALSE);
+
         delivery.setStatus(deliveryStatusService.getDeliveryStatusById(1L));
         return saveDelivery(delivery);
     }
 
-    public List<Delivery> getAllBySomeFilters(LocalDate dateStart, LocalDate dateEnd, List<Long> providerIdList, List<Long> addressIdList, String statusTitle){
+    public List<Delivery> getAllBySomeFilters(LocalDate dateStart, LocalDate dateEnd, List<Long> providerIdList, List<Long> addressIdList, String statusTitle) {
         LocalDateTime dateTimeStart = dateStart.atStartOfDay();
         LocalDateTime dateTimeEnd = dateEnd.plusDays(1).atStartOfDay();
-        if (providerIdList.isEmpty()&&addressIdList.isEmpty()){
-            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndStatus_titleContains(dateTimeStart,dateTimeEnd,statusTitle);
+        if (providerIdList.isEmpty() && addressIdList.isEmpty()) {
+            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndStatus_titleContains(dateTimeStart, dateTimeEnd, statusTitle);
         } else if (providerIdList.isEmpty()) {
-            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndAddress_idInAndStatus_titleContains(dateTimeStart,dateTimeEnd,addressIdList,statusTitle);
+            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndAddress_idInAndStatus_titleContains(dateTimeStart, dateTimeEnd, addressIdList, statusTitle);
         } else if (addressIdList.isEmpty()) {
-            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndProvider_idInAndStatus_titleContains(dateTimeStart, dateTimeEnd, providerIdList,statusTitle);
+            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndProvider_idInAndStatus_titleContains(dateTimeStart, dateTimeEnd, providerIdList, statusTitle);
         } else {
-            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndProvider_idInAndAddress_idInAndStatus_titleContains(dateTimeStart,dateTimeEnd, providerIdList, addressIdList,statusTitle);
+            return deliveryRepository.findAllByDeliveryDateTimeBetweenAndProvider_idInAndAddress_idInAndStatus_titleContains(dateTimeStart, dateTimeEnd, providerIdList, addressIdList, statusTitle);
         }
     }
 
-    public InfoDTO getInfoBySomeFilters(LocalDate dateStart, LocalDate dateEnd, List<Long> providerIdList, List<Long> addressIdList, String statusTitle){
-        List<Delivery> deliveries = getAllBySomeFilters(dateStart,dateEnd, providerIdList, addressIdList, statusTitle);
+    public InfoDTO getInfoBySomeFilters(LocalDate dateStart, LocalDate dateEnd, List<Long> providerIdList, List<Long> addressIdList, String statusTitle) {
+        List<Delivery> deliveries = getAllBySomeFilters(dateStart, dateEnd, providerIdList, addressIdList, statusTitle);
 
         List<PurchaseObject> purchaseObjects = purchaseObjectService.getPurchaseObjectsByDeliveryList(deliveries);
 
@@ -93,34 +93,22 @@ public class DeliveryService {
         infoDTO.setDeliveryReportDTO(getDeliveryReportDTO(purchaseObjects));
         infoDTO.setCountDeliveries(deliveries.size());
 
-        return  infoDTO;
+        return infoDTO;
     }
 
     public Delivery finishDeliveryReceivingById(Long id) {
         Delivery delivery = getDeliveryById(id);
-
-
-        List<PurchaseObject> purchaseObjects = purchaseObjectService.getPurchaseObjectsByDeliveryId(id);
-        delivery.setStatus(deliveryStatusService.getDeliveryStatusById(1L));
-        int countPurchaseObjectsWithoutComplaints = 0;
-        for (PurchaseObject purchaseObject : purchaseObjects) {
-            if (purchaseObject.getComplaints().isEmpty()) {
-                countPurchaseObjectsWithoutComplaints++;
-            }
-            BigDecimal sum = purchaseObject.getComplaints().stream()
-                    .map(Complaint::getComplaintCount)
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-            if (sum.compareTo(purchaseObject.getProductCount()) < 0) {
-                delivery.setStatus(deliveryStatusService.getDeliveryStatusById(4L));
-            }
-        }
-        if (countPurchaseObjectsWithoutComplaints == purchaseObjects.size()) {
+        DeliveryReportDTO deliveryReportDTO = getDeliveryReportDTO(purchaseObjectService.getPurchaseObjectsByDeliveryId(id));
+        if (deliveryReportDTO.getCountPurchaseObjects() == deliveryReportDTO.getCountFullSuccessfulPurchaseObjects()) {
             delivery.setStatus(deliveryStatusService.getDeliveryStatusById(3L));
-        }
+        } else if (deliveryReportDTO.getCountPurchaseObjects() == deliveryReportDTO.getCountUnreceivedPurchaseObjects()) {
+            delivery.setStatus(deliveryStatusService.getDeliveryStatusById(5L));
+        } else {delivery.setStatus(deliveryStatusService.getDeliveryStatusById(4L));}
+
         return saveDelivery(delivery);
     }
 
-    public DeliveryReportDTO getDeliveryReportDTO(List<PurchaseObject> purchaseObjects){
+    public DeliveryReportDTO getDeliveryReportDTO(List<PurchaseObject> purchaseObjects) {
         DeliveryReportDTO deliveryReportDTO = new DeliveryReportDTO();
         deliveryReportDTO.setCountPurchaseObjects(purchaseObjects.size());
         int countReceivedPurchaseObject = 0;
@@ -130,15 +118,21 @@ public class DeliveryService {
         BigDecimal pricePerAllComplaints = BigDecimal.ZERO;
         BigDecimal totalProductPrice = BigDecimal.ZERO;
 
-        for (PurchaseObject purchaseObject : purchaseObjects){
-            if (purchaseObject.getIsReceived()){countReceivedPurchaseObject++;}
+        for (PurchaseObject purchaseObject : purchaseObjects) {
+            if (purchaseObject.getIsReceived()) {
+                countReceivedPurchaseObject++;
+            }
             List<Complaint> complaints = purchaseObject.getComplaints();
-            if (!complaints.isEmpty()){countPurchaseObjectsWithComplaints++;}
-            if (purchaseObject.getIsReceived()&&complaints.isEmpty()){countFullSuccessfulPurchaseObjects++;}
+            if (!complaints.isEmpty()) {
+                countPurchaseObjectsWithComplaints++;
+            }
+            if (purchaseObject.getIsReceived() && complaints.isEmpty()) {
+                countFullSuccessfulPurchaseObjects++;
+            }
             numberComplaints += complaints.size();
 
             BigDecimal allComplaintCount = BigDecimal.ZERO;
-            for (Complaint complaint: complaints){
+            for (Complaint complaint : complaints) {
                 allComplaintCount = allComplaintCount.add(complaint.getComplaintCount());
             }
             pricePerAllComplaints = pricePerAllComplaints.add(purchaseObject.getProductCount().multiply(allComplaintCount));
@@ -147,10 +141,10 @@ public class DeliveryService {
         }
 
         deliveryReportDTO.setCountReceivedPurchaseObjects(countReceivedPurchaseObject);
-        deliveryReportDTO.setCountUnreceivedPurchaseObjects(deliveryReportDTO.getCountPurchaseObjects()-countReceivedPurchaseObject);
+        deliveryReportDTO.setCountUnreceivedPurchaseObjects(deliveryReportDTO.getCountPurchaseObjects() - countReceivedPurchaseObject);
 
         deliveryReportDTO.setCountPurchaseObjectsWithComplaints(countPurchaseObjectsWithComplaints);
-        deliveryReportDTO.setCountPurchaseObjectsWithoutComplaints(deliveryReportDTO.getCountPurchaseObjects()-countPurchaseObjectsWithComplaints);
+        deliveryReportDTO.setCountPurchaseObjectsWithoutComplaints(deliveryReportDTO.getCountPurchaseObjects() - countPurchaseObjectsWithComplaints);
 
         deliveryReportDTO.setCountFullSuccessfulPurchaseObjects(countFullSuccessfulPurchaseObjects);
         deliveryReportDTO.setNumberComplaints(numberComplaints);

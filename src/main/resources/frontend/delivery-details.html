@@ -99,11 +99,15 @@ $(document).ready(function() {
                 deliveryDateTime = response.deliveryDateTime;
                 statusTitle = response.status.title;
                 statusId = response.status.id;
+
+                var formattedDate = new Date(deliveryDateTime).toLocaleDateString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                var formattedTime = new Date(deliveryDateTime).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                var dateTimeString = `${formattedDate} ${formattedTime}`;
                 
                 $('#deliveryId').text(response.id);
                 $('#providerName').text(providerName);
                 $('#addressTitle').text(addressTitle);
-                $('#deliveryDateTime').text(deliveryDateTime);
+                $('#deliveryDateTime').text(dateTimeString);
                 $('#statusTitle').text(statusTitle);
                 
                 if (statusId === 2) {
@@ -239,7 +243,7 @@ $(document).ready(function() {
 
     $('#cancelReceiving').on('click', function() {
 
-        var result = confirm("Вы точно хотите отменить приёмку товара? Информация о полученных объектах сохранится, но статус доставки поменяется на 'Ожидается'. Обработанные объекты закупки не будут учитываться в статистике.");
+        var result = confirm("Вы точно хотите отменить приёмку товара? Информация о полученных объектах сохранится, но статус доставки поменяется на 'Ожидается'.");
         if (!result) {
             return false;
            
@@ -276,9 +280,12 @@ $(document).ready(function() {
     $('#completeDeliveryCheck').on('click', function() {
 
         var deliveryId = $('#deliveryId').text();
+        var requestBody = JSON.stringify({ "command": "FINISH" });
         $.ajax({
-            url: 'http://localhost:8081/deliveries/' + deliveryId,
+            url: 'http://localhost:8081/deliveries/' + deliveryId + '/receiving',
             method: 'POST',
+            contentType: 'application/json',
+            data: requestBody,
             success: function(response) {
                 console.log("Доставка помечена как завершенная.");
                 location.reload(); // Перезагружаем страницу.

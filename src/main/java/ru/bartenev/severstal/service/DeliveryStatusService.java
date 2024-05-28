@@ -5,8 +5,11 @@ import org.springframework.stereotype.Service;
 import ru.bartenev.severstal.entity.DeliveryStatus;
 import ru.bartenev.severstal.entity.Reason;
 import ru.bartenev.severstal.exception.ComplaintNotFoundException;
+import ru.bartenev.severstal.exception.DeliveryStatusNotFoundException;
 import ru.bartenev.severstal.exception.InvalidParametersException;
 import ru.bartenev.severstal.repository.DeliveryStatusRepository;
+
+import java.util.List;
 
 @Service
 public class DeliveryStatusService {
@@ -18,6 +21,10 @@ public class DeliveryStatusService {
     }
 
     public DeliveryStatus getDeliveryStatusById(Long id) {
-        return deliveryStatusRepository.findById(id).orElseThrow(() -> new ComplaintNotFoundException("Delivery status with id: " + id + " not found."));
+        return deliveryStatusRepository.findById(id).orElseThrow(() -> new DeliveryStatusNotFoundException("Delivery status with id: " + id + " not found."));
+    }
+
+    public List<DeliveryStatus> getAllDeliveryStatuses(){
+        return deliveryStatusRepository.findAll();
     }
 }

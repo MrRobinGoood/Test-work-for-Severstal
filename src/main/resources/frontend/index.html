@@ -10,6 +10,7 @@
         <h2>Все доставки</h2>
         <div class="row">
             <div class="col-md-3">
+                <label for="sortColumnSelect">Сортировка:</label>
                 <select id="sortColumnSelect" class="form-control">
                     <option value="ID">ID</option>
                     <option value="PROVIDER">Поставщик</option>
@@ -19,17 +20,46 @@
                 </select>
             </div>
             <div class="col-md-3">
+                <label for="sortDirectionSelect">Направление:</label>
                 <select id="sortDirectionSelect" class="form-control">
                     <option value="ASC">По возрастанию</option>
                     <option value="DESC">По убыванию</option>
                 </select>
+
+                
             </div>
             <div class="col-md-3">
-                <a href="delivery-charts.html?id=1" class="btn btn-light">Сформировать отчет за период</a>
+                <label for="deliveryStatusSelect">Статус доставки:</label>
+                <select id="deliveryStatusSelect" class="form-control"></select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateStart">Начальная дата:</label>
+                <input type="date" id="dateStart" class="form-control">
+            </div>
+            
+          
+
+            
+        </div>
+        
+        <div class="row" style="margin-top: 10px;">
+            <div class="col-md-3">
+                <label for="providerSelect">Поставщик:</label>
+                <select id="providerSelect" class="form-control"></select>
+            </div>
+            <div class="col-md-6">
+                <label for="addressSelect">Адрес:</label>
+                <select id="addressSelect" class="form-control"></select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateEnd">Конечная дата:</label>
+                <input type="date" id="dateEnd" class="form-control">
             </div>
         </div>
+
+        
     
-    <table class="table table-striped" id="deliveriesTable">
+    <table class="table table-striped" style="margin-top: 20px;" id="deliveriesTable">
         <thead>
             <tr>
                 <th>ID</th>
@@ -45,8 +75,25 @@
             <!-- Здесь будут динамически добавляться строки -->
         </tbody>
     </table>
-    <button id="prevPageBtn" class="btn btn-light" disabled>Предыдущая страница</button>
-    <button id="nextPageBtn" class="btn btn-light">Следующая страница</button>
+    <div class="row">
+        <button id="prevPageBtn" class="btn btn-light mr-2" disabled>Предыдущая страница</button>
+        <button id="nextPageBtn" class="btn btn-light mr-2">Следующая страница</button>
+
+    
+        <div class="col-md-3 text-left  " style="margin-top: 12px;">
+            <p>Текущая страница: <span id="currentPageInfo">1</span>/<span id="totalPagesInfo">12</span></p>
+        </div>
+
+
+
+        <div class="col-md-3 ml-auto" >
+            <a id="createFullReport" class="btn btn-light">Сформировать отчет за период</a>
+        </div>
+    </div>
+
+    
+    
+</div>
 </div>
 
 <script>
@@ -55,58 +102,181 @@ $(document).ready(function() {
     var sortDirection = 'ASC';
     var currentPage = 1;
 
-    function loadDeliveries(pageNumber = currentPage, sortByParam = sortBy, sortDirectionParam = sortDirection) {
-        $.ajax({
-            url: 'http://localhost:8081/deliveries?page=' + pageNumber + '&size=10&sortBy=' + sortByParam + '&sortDirection=' + sortDirectionParam,
-            method: 'GET',
-            success: function(response) {
-                var tbody = $('#deliveriesTable tbody');
-                tbody.empty();
-                response.deliveries.forEach(delivery => {
-                    var row = $('<tr>');
-                    row.append('<td>' + delivery.id + '</td>');
-                    row.append('<td>' + delivery.provider.title + '</td>');
-                    row.append('<td>' + delivery.address.title + '</td>');
-                    row.append('<td>' + delivery.deliveryDateTime + '</td>');
-                    row.append('<td>' + delivery.status.title + '</td>');
-                    row.append('<td><a href="delivery-details.html?id=' + delivery.id + '" class="btn btn-primary">Подробнее</a></td>');
-                    row.append('<td><a href="delivery-charts.html?id=' + delivery.id + '" class="btn btn-secondary">Статистика</a></td>');
-                    tbody.append(row);
-                });
-                currentPage = pageNumber;
-                updateNavigationButtons(response.config.totalPages); // Передаем totalPages напрямую
-            },
-            error: function(error) {
-                console.error('Ошибка при загрузке доставок:', error);
-            }
-        });
-    }
+    function loadDeliveries(pageNumber = currentPage, sortByParam = sortBy, sortDirectionParam = sortDirection, providerId = null, addressId = null, statusId= null, startDate = null, endDate = null) {
+    var queryParams = '?page=' + pageNumber + '&size=7&sortBy=' + sortByParam + '&sortDirection=' + sortDirectionParam;
+    if (providerId!== null) queryParams += '&providerId=' + providerId;
+    if (addressId!== null) queryParams += '&addressId=' + addressId;
+    if (statusId!== null) queryParams += '&statusId=' + statusId;
+    if (startDate!== null) queryParams += '&startDate=' + startDate; // Предполагается, что на сервере есть соответствующий параметр
+
+    if (endDate!== null) queryParams += '&endDate=' + endDate; // Предполагается, что на сервере есть соответствующий параметр
+
+    $.ajax({
+        url: 'http://localhost:8081/deliveries' + queryParams,
+        method: 'GET',
+        success: function(response) {
+            var tbody = $('#deliveriesTable tbody');
+            tbody.empty();
+            response.deliveries.forEach(delivery => {
+                var formattedDate = new Date(delivery.deliveryDateTime).toLocaleDateString('ru-RU', { year: 'numeric', month: '2-digit', day: '2-digit' });
+                var formattedTime = new Date(delivery.deliveryDateTime).toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                var dateTimeString = `${formattedDate} ${formattedTime}`;
+
+                var row = $('<tr>');
+                row.append('<td>' + delivery.id + '</td>');
+                row.append('<td>' + delivery.provider.title + '</td>');
+                row.append('<td>' + delivery.address.title + '</td>');
+                row.append('<td>' + dateTimeString + '</td>'); // Используем форматированную строку здесь
+                row.append('<td>' + delivery.status.title + '</td>');
+                row.append('<td><a href="delivery-details.html?id=' + delivery.id + '" class="btn btn-primary">Подробнее</a></td>');
+                row.append('<td><a href="delivery-charts.html?id=' + delivery.id + '" class="btn btn-secondary">Статистика</a></td>');
+                tbody.append(row);
+            });
+            currentPage = pageNumber;
+            updateNavigationButtons(response.config.totalPages); // Передаем totalPages напрямую
+            $('#currentPageInfo').text(currentPage); // Обновляем информацию о текущей странице
+             $('#totalPagesInfo').text(response.config.totalPages); // Обновляем информацию о общем количестве страниц
+        },
+        error: function(error) {
+            console.error('Ошибка при загрузке доставок:', error);
+        }
+    });
+}
+
+function populateComboboxes() {
+    // Добавляем пустой вариант по умолчанию для всех комбобоксов
+    $('#providerSelect, #addressSelect, #deliveryStatusSelect').prepend($('<option>', {
+        value: '',
+        text: 'Выберите...'
+    }));
+
+    // Запрос данных для поставщиков
+    $.ajax({
+        url: 'http://localhost:8081/providers',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            var providerSelect = $('#providerSelect');
+            providerSelect.find('option:not(:first)').remove(); // Удаляем предыдущие данные, кроме первого (пустого варианта)
+            data.forEach(provider => {
+                var option = $('<option>').attr('value', provider.id).text(provider.title);
+                providerSelect.append(option);
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Ошибка при загрузке списка поставщиков:', textStatus, errorThrown);
+        }
+    });
+
+    // Запрос данных для адресов
+    $.ajax({
+        url: 'http://localhost:8081/addresses',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            var addressSelect = $('#addressSelect');
+            addressSelect.find('option:not(:first)').remove(); // Удаляем предыдущие данные, кроме первого (пустого варианта)
+            data.forEach(address => {
+                var option = $('<option>').attr('value', address.id).text(address.title);
+                addressSelect.append(option);
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Ошибка при загрузке списка адресов:', textStatus, errorThrown);
+        }
+    });
+
+     // Запрос данных для статусов
+     $.ajax({
+        url: 'http://localhost:8081/delivery-statuses',
+        type: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            var statusSelect = $('#deliveryStatusSelect');
+            statusSelect.find('option:not(:first)').remove(); // Удаляем предыдущие данные, кроме первого (пустого варианта)
+            data.forEach(status => {
+                var option = $('<option>').attr('value', status.id).text(status.title);
+                statusSelect.append(option);
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Ошибка при загрузке списка статусов:', textStatus, errorThrown);
+        }
+    });
+}
+
+
 
     function updateNavigationButtons(totalPages) {
         var hasNextPage = currentPage < totalPages;
         var hasPreviousPage = currentPage > 1;
         $('#nextPageBtn').prop('disabled',!hasNextPage);
         $('#prevPageBtn').prop('disabled',!hasPreviousPage);
-    }
+        $('#currentPageInfo').text(currentPage); // Обновляем информацию о текущей странице
+    $('#totalPagesInfo').text(totalPages); // Обновляем информацию о общем количестве страниц
+           }
 
-    $('#sortColumnSelect, #sortDirectionSelect').on('change', function() {
-        var sortBy = $('#sortColumnSelect').val();
-        var sortDirection = $('#sortDirectionSelect').val();
-        loadDeliveries(currentPage, sortBy, sortDirection);
-    });
+  // Обработчик события изменения для сортировки и фильтрации
+$('#sortColumnSelect, #sortDirectionSelect, #deliveryStatusSelect, #providerSelect, #addressSelect, #dateStart, #dateEnd').on('change', function() {
+    var sortBy = $('#sortColumnSelect').val();
+    var sortDirection = $('#sortDirectionSelect').val();
+    var statusId = $('#deliveryStatusSelect').val();
+    var providerId = $('#providerSelect').val();
+    var addressId = $('#addressSelect').val();
+    var startDate = $('#dateStart').val();
+    var endDate = $('#dateEnd').val();
+    console.log(startDate);
+    loadDeliveries(currentPage, sortBy, sortDirection, providerId, addressId, statusId, startDate, endDate);
+});
 
-    $('#prevPageBtn').on('click', function() {
-        var sortBy = $('#sortColumnSelect').val();
-        var sortDirection = $('#sortDirectionSelect').val();
-        loadDeliveries(currentPage - 1, sortBy, sortDirection);
-    });
-    $('#nextPageBtn').on('click', function() {
-        var sortBy = $('#sortColumnSelect').val();
-        var sortDirection = $('#sortDirectionSelect').val();
-        loadDeliveries(currentPage + 1, sortBy, sortDirection);
-    });
+// Обработчик клика на кнопку "Предыдущая страница"
+$('#prevPageBtn').on('click', function() {
+    var sortBy = $('#sortColumnSelect').val();
+    var sortDirection = $('#sortDirectionSelect').val();
+    var providerId = $('#providerSelect').val();
+    var addressId = $('#addressSelect').val();
+    var statusId = $('#deliveryStatusSelect').val();
+    var startDate = $('#dateStart').val();
+    var endDate = $('#dateEnd').val();
 
+    loadDeliveries(currentPage - 1, sortBy, sortDirection, providerId, addressId, statusId, startDate, endDate);
+});
+
+// Обработчик клика на кнопку "Следующая страница"
+$('#nextPageBtn').on('click', function() {
+    var sortBy = $('#sortColumnSelect').val();
+    var sortDirection = $('#sortDirectionSelect').val();
+    var providerId = $('#providerSelect').val();
+    var addressId = $('#addressSelect').val();
+    var statusId = $('#deliveryStatusSelect').val();
+    var startDate = $('#dateStart').val();
+    var endDate = $('#dateEnd').val();
+
+    loadDeliveries(currentPage + 1, sortBy, sortDirection, providerId, addressId, statusId, startDate, endDate);
+});
+
+// Обработчик клика на кнопку "Следующая страница"
+$('#createFullReport').on('click', function() {
+    var sortBy = $('#sortColumnSelect').val();
+    var sortDirection = $('#sortDirectionSelect').val();
+    var providerId = $('#providerSelect').val();
+    var addressId = $('#addressSelect').val();
+    var statusId = $('#deliveryStatusSelect').val();
+    var startDate = $('#dateStart').val();
+    var endDate = $('#dateEnd').val();
+
+    var queryParams = '?page=1&size=1000';
+    if (providerId!== null) queryParams += '&providerId=' + providerId;
+    if (addressId!== null) queryParams += '&addressId=' + addressId;
+    if (statusId!== null) queryParams += '&statusId=' + statusId;
+    if (startDate!== null) queryParams += '&startDate=' + startDate; // Предполагается, что на сервере есть соответствующий параметр
+    if (endDate!== null) queryParams += '&endDate=' + endDate; // Предполагается, что на сервере есть соответствующий параметр
+    window.location.href = 'delivery-report.html' + queryParams;
+
+});
+    
     loadDeliveries();
+    populateComboboxes();
     updateNavigationButtons(12); // Инициализация с предположительным значением totalPages
 });
 </script>
