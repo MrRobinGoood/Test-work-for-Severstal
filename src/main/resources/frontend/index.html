@@ -112,7 +112,7 @@ $(document).ready(function() {
     if (endDate!== null) queryParams += '&endDate=' + endDate; // Предполагается, что на сервере есть соответствующий параметр
 
     $.ajax({
-        url: 'http://localhost:8081/deliveries' + queryParams,
+        url: 'http://188.72.108.75:80/deliveries' + queryParams,
         method: 'GET',
         success: function(response) {
             var tbody = $('#deliveriesTable tbody');
@@ -152,7 +152,7 @@ function populateComboboxes() {
 
     // Запрос данных для поставщиков
     $.ajax({
-        url: 'http://localhost:8081/providers',
+        url: 'http://188.72.108.75:80/providers',
         type: 'GET',
         dataType: 'json',
         success: function(data) {
@@ -170,7 +170,7 @@ function populateComboboxes() {
 
     // Запрос данных для адресов
     $.ajax({
-        url: 'http://localhost:8081/addresses',
+        url: 'http://188.72.108.75:80/addresses',
         type: 'GET',
         dataType: 'json',
         success: function(data) {
@@ -188,7 +188,7 @@ function populateComboboxes() {
 
      // Запрос данных для статусов
      $.ajax({
-        url: 'http://localhost:8081/delivery-statuses',
+        url: 'http://188.72.108.75:80/delivery-statuses',
         type: 'GET',
         dataType: 'json',
         success: function(data) {

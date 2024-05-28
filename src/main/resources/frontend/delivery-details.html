@@ -90,7 +90,7 @@ $(document).ready(function() {
 
     function loadDeliveryDetails(id) {
         $.ajax({
-            url: 'http://localhost:8081/deliveries/' + id,
+            url: 'http://188.72.108.75:80/deliveries/' + id,
             method: 'GET',
             success: function(response) {
                 deliveryId = response.id;
@@ -128,7 +128,7 @@ $(document).ready(function() {
 
     function loadPurchaseObjects(deliveryId) {
     $.ajax({
-        url: 'http://localhost:8081/deliveries/' + deliveryId + '/purchase-objects?page=1&size=1000',
+        url: 'http://188.72.108.75:80/deliveries/' + deliveryId + '/purchase-objects?page=1&size=1000',
         method: 'GET',
         success: function(response) {
             var tbody = $('#purchaseObjectsTable tbody');
@@ -169,7 +169,7 @@ $(document).ready(function() {
                     var requestBody = $checkbox.is(':checked')? '{"isReceived": true}' : '{"isReceived": false}';
                     
                     $.ajax({
-                        url: 'http://localhost:8081/purchase-objects/' + purchaseObjectId + '/receiving',
+                        url: 'http://188.72.108.75:80/purchase-objects/' + purchaseObjectId + '/receiving',
                         method: 'PATCH',
                         contentType: 'application/json',
                         data: requestBody,
@@ -223,7 +223,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-        url: 'http://localhost:8081/deliveries/' + deliveryId + '/receiving',
+        url: 'http://188.72.108.75:80/deliveries/' + deliveryId + '/receiving',
         method: 'POST',
         contentType: 'application/json',
         data: requestBody,
@@ -255,7 +255,7 @@ $(document).ready(function() {
         var requestBody = JSON.stringify({ "command": "CANCEL" });
 
         $.ajax({
-            url: 'http://localhost:8081/deliveries/' + deliveryId + '/receiving',
+            url: 'http://188.72.108.75:80/deliveries/' + deliveryId + '/receiving',
             method: 'POST',
             contentType: 'application/json',
             data: requestBody,
@@ -282,7 +282,7 @@ $(document).ready(function() {
         var deliveryId = $('#deliveryId').text();
         var requestBody = JSON.stringify({ "command": "FINISH" });
         $.ajax({
-            url: 'http://localhost:8081/deliveries/' + deliveryId + '/receiving',
+            url: 'http://188.72.108.75:80/deliveries/' + deliveryId + '/receiving',
             method: 'POST',
             contentType: 'application/json',
             data: requestBody,

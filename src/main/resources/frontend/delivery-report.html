@@ -60,7 +60,7 @@
             
            function loadCharts(id){ 
             $.ajax({
-                url: `http://localhost:8081/deliveries/${id}/report`,
+                url: `http://188.72.108.75:80/deliveries/${id}/report`,
                 type: 'GET',
                 dataType: 'json',
                 success: function(data) {
@@ -178,7 +178,7 @@
         function startFullReport(urlParams = null) {
     console.log(urlParams);
             $.ajax({
-        url: 'http://localhost:8081/deliveries/report?' + urlParams,
+        url: 'http://188.72.108.75:80/deliveries/report?' + urlParams,
         method: 'GET',
         success: function(data) {
                     // Обновляем данные диаграммы
