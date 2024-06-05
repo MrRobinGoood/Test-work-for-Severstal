@@ -68,7 +68,7 @@ $(document).ready(function() {
 
     function loadPurchaseObjectDetails(id) {
         $.ajax({
-            url: 'http://188.72.108.75:80/purchase-objects/' + id,
+            url: 'http://91.224.86.179:80/purchase-objects/' + id,
             method: 'GET',
             success: function(response) {
                 purchaseObjectId = response.id;
@@ -94,7 +94,7 @@ $(document).ready(function() {
 
     function loadComplaints(purchaseObjectId) {
         $.ajax({
-            url: 'http://188.72.108.75:80/purchase-objects/' + purchaseObjectId + '/complaints',
+            url: 'http://91.224.86.179:80/purchase-objects/' + purchaseObjectId + '/complaints',
             method: 'GET',
             success: function(response) {
                 var tbody = $('#complaintsTable tbody');
@@ -133,7 +133,7 @@ $(document).ready(function() {
 
     function loadReasons(callback) {
         $.ajax({
-            url: 'http://188.72.108.75:80/reasons',
+            url: 'http://91.224.86.179:80/reasons',
             method: 'GET',
             success: function(response) {
                 var reasonsById = {};
@@ -258,7 +258,7 @@ $('#complaintCount').on('keypress', function(e) {
     };
 
     // Определяем URL в зависимости от того, есть ли complaintId
-    var apiUrl = complaintId? 'http://188.72.108.75:80/purchase-objects/complaints/' + complaintId : 'http://188.72.108.75:80/purchase-objects/' + purchaseObjectId + '/complaints';
+    var apiUrl = complaintId? 'http://91.224.86.179:80/purchase-objects/complaints/' + complaintId : 'http://91.224.86.179:80/purchase-objects/' + purchaseObjectId + '/complaints';
 
     // Выполняем запрос
     $.ajax({
@@ -311,7 +311,7 @@ $('body').on('click', '.delete-btn', function() {
 
     if (confirmation) {
         $.ajax({
-            url: 'http://188.72.108.75:80/purchase-objects/complaints/' + complaintId,
+            url: 'http://91.224.86.179:80/purchase-objects/complaints/' + complaintId,
             method: 'DELETE',
             success: function(response) {
                 console.log('Жалоба успешно удалена');
